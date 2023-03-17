@@ -9,27 +9,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class Player {
-
-    int id;
     String name;
     char symbol;
     PlayerType type;
 
-    Player(int id, String name, char symbol, PlayerType type)
+    public Player(String name, char symbol, PlayerType type)
     {
-        this.id = id;
+
         this.name = name;
         this.symbol = symbol;
         this.type = type;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;

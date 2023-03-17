@@ -6,9 +6,9 @@ public class Cell {
     int row;
     int col;
     CellState state;
-    Player p;
+    Player player;
 
-    Cell(int row,int col)
+    public Cell(int row,int col)
     {
         this.row = row;
         this.col = col;
@@ -39,11 +39,11 @@ public class Cell {
         this.state = state;
     }
 
-    public Player getP() {
-        return p;
+    public Player getPlayer() {
+        return player;
     }
 
-    public void setP(Player p) {
-        this.p = p;
+    public void setPlayer(Player p) {
+        this.player = p;
     }
 }

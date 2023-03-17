@@ -10,9 +10,9 @@ import java.io.IOException;
 public class Bot extends Player{
     BotPlayStrategy strategy;
     BotType type;
-    Bot(int id, String name, char symbol, BotType type)
+    public Bot(String name, char symbol, BotType type)
     {
-        super(id, name, symbol, PlayerType.BOT);
+        super(name, symbol, PlayerType.BOT);
         this.type = type;
         strategy = BotPlayingStrategyFactory.getPlayStartegy(type);
     }

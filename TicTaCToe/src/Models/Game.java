@@ -1,8 +1,12 @@
 package Models;
 
+import Enums.CellState;
 import Enums.GameStatus;
 import Enums.PlayerType;
+import Strategies.Win.WinningStrategy;
+import Strategies.Win.WinningStrategyImpl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +18,97 @@ public class Game {
     int nextPlayerIndex;
     GameStatus status;
     Player winner;
+    WinningStrategy winningStrategy;
+    int dimension;
+    public Board getBoard() {
+        return board;
+    }
+
+    public void setBoard(Board board) {
+        this.board = board;
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(List<Player> players) {
+        this.players = players;
+    }
+
+    public List<Move> getMoves() {
+        return moves;
+    }
+
+    public void setMoves(List<Move> moves) {
+        this.moves = moves;
+    }
+
+    public int getNextPlayerIndex() {
+        return nextPlayerIndex;
+    }
+
+    public void setNextPlayerIndex(int nextPlayerIndex) {
+        this.nextPlayerIndex = nextPlayerIndex;
+    }
+
+    public GameStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(GameStatus status) {
+        this.status = status;
+    }
+
+    public Player getWinner() {
+        return winner;
+    }
+
+    public void setWinner(Player winner) {
+        this.winner = winner;
+    }
+
+    public WinningStrategy getWinningStrategy() {
+        return winningStrategy;
+    }
+
+    public void setWinningStrategy(WinningStrategy winningStrategy) {
+        this.winningStrategy = winningStrategy;
+    }
+
+
+
+    public void makeNextMove() throws IOException
+    {
+        Player activePlayer = this.players.get(nextPlayerIndex);
+
+        System.out.println(activePlayer.getName()+"'s turn");
+
+        Move move = activePlayer.performMove(this.board);
+        int row = move.getCell().getRow();
+        int col = move.getCell().getCol();
+
+        Cell currentCell = this.board.getCells().get(row).get(col);
+
+        currentCell.setState(CellState.FILL);
+        currentCell.setPlayer(activePlayer);
+
+
+
+        this.moves.add(new Move(activePlayer,this.board.getCells().get(row).get(col)));
+
+        if(winningStrategy.findWinner(this.board,activePlayer,currentCell))
+        {
+            this.winner = activePlayer;
+            this.status = GameStatus.END;
+        }
+
+        if(this.moves.size() == this.dimension*this.dimension)
+            this.status = GameStatus.DRAW;
+
+        this.nextPlayerIndex = (this.nextPlayerIndex+1)%this.players.size();
+
+    }
 
     private Game() {
     }
@@ -23,19 +118,15 @@ public class Game {
     }
 
     public static class Builder {
-        Board board;
+        int dimension;
         List<Player> players;
-        List<Move> moves;
-        int nextPlayerIndex;
-        GameStatus status;
-        Player winner;
 
-        public Board getBoard() {
-            return board;
+        public int getDimension() {
+            return dimension;
         }
 
-        public Builder setBoard(Board board) {
-            this.board = board;
+        public Builder setDimension(int dimension) {
+            this.dimension = dimension;
             return this;
         }
 
@@ -48,59 +139,19 @@ public class Game {
             return this;
         }
 
-        public List<Move> getMoves() {
-            return moves;
-        }
-
-        public Builder setMoves(List<Move> moves) {
-            this.moves = moves;
-            return this;
-        }
-
-        public int getNextPlayerIndex() {
-            return nextPlayerIndex;
-        }
-
-        public Builder setNextPlayerIndex(int nextPlayerIndex) {
-            this.nextPlayerIndex = nextPlayerIndex;
-            return this;
-        }
-
-        public GameStatus getStatus() {
-            return status;
-        }
-
-        public Builder setStatus(GameStatus status) {
-            this.status = status;
-            return this;
-        }
-
-        public Player getWinner() {
-            return winner;
-        }
-
-        public Builder setWinner(Player winner) {
-            this.winner = winner;
-            return this;
-        }
-
-        public Game build() {
-//            try{
-//
-//            }
-//            catch(Exception e)
-//            {
-//
-//            }
-            Game ob = new Game();
-            ob.board = new Board(3);
-            ob.players = Arrays.asList(new Player(1, "kartik", 'O', PlayerType.HUMAN), new Player(2, "enemy", 'X', PlayerType.BOT));
-            ob.moves = new ArrayList<>();
-            ob.status = GameStatus.IN_PROGRESS;
-
-            return ob;
+        public Game build()
+        {
+            Game game = new Game();
+            game.board = new Board(dimension);
+            game.players = players;
+            game.moves = new ArrayList<>();
+            game.nextPlayerIndex = 0;
+            game.status = GameStatus.IN_PROGRESS;
+            game.winningStrategy = new WinningStrategyImpl(dimension);
+            return game;
         }
     }
+
 
 
 }
