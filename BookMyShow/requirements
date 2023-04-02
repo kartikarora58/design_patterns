@@ -1,0 +1,6 @@
+a city can have theatre
+1 theatre can have multiple auditoriums
+an auditorium can have seats
+seat can be of different types
+
+Show can have a start time, end time, Movie,

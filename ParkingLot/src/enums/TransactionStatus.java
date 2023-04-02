@@ -1,0 +1,8 @@
+package enums;
+
+public enum TransactionStatus {
+    SUCCESS,
+    FAILED,
+    IN_PROGRESS
+
+}

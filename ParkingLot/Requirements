@@ -1,5 +1,23 @@
 Parking Lot requirements
 
-1. A parking lot can have number of floors (since it is a big parking lot)
-2. Each floor will have parking lots
-3.
+1. Multiple floors
+2. Multiple entry gates
+3. entry ticket is generated
+4. ticket contains- entry time,parking slot, vehicle type vehicle no
+5. one floor can have multiple parking lots
+6. different types of vehicle supported
+7. Payment- Partial payment option
+8. Different types of slot for different vehicles
+9. special slot for special vehicles
+10. Bill is calculated at exit gate
+11. Payment to be done at exit gate
+12 Multiple types of payments accepted
+
+Clarify the requirements
+1. Support multiple ways of slot allocation
+2. Bill calculation -> duration of parking
+                    -> Type of vehicle
+3. Payment supported-> partial payments
+                    -> multiple modes cash/online
+4. separate pricing for electric cars
+
