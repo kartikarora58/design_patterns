@@ -1,0 +1,9 @@
+vending machine
+-Idle state
+-Has Coin state
+    -Refund and go back to normal state
+    - press dispatch button
+- dispensing state
+- if has cans return to idle state
+- out of order state
+
