@@ -7,6 +7,7 @@
       <module fileurl="file://$PROJECT_DIR$/ParkingLot/ParkingLot.iml" filepath="$PROJECT_DIR$/ParkingLot/ParkingLot.iml" />
       <module fileurl="file://$PROJECT_DIR$/PenDesign/PenDesign.iml" filepath="$PROJECT_DIR$/PenDesign/PenDesign.iml" />
       <module fileurl="file://$PROJECT_DIR$/TicTaCToe/TicTaCToe.iml" filepath="$PROJECT_DIR$/TicTaCToe/TicTaCToe.iml" />
+      <module fileurl="file://$PROJECT_DIR$/org.vandingMachine/org.vandingMachine.iml" filepath="$PROJECT_DIR$/org.vandingMachine/org.vandingMachine.iml" />
     </modules>
   </component>
 </project>
