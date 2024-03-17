@@ -1,2 +1,4 @@
-package decorator;public interface Ingredient {
+package decorator;
+
+public interface Ingredient extends Pizza{
 }

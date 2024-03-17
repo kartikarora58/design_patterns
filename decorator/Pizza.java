@@ -1,2 +1,5 @@
-package decorator;public interface Pizza {
+package decorator;
+
+public interface Pizza {
+    public int getCost();
 }
