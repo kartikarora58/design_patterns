@@ -1,6 +1,78 @@
-a city can have theatre
-1 theatre can have multiple auditoriums
-an auditorium can have seats
-seat can be of different types
+User
+    id
+    name
 
-Show can have a start time, end time, Movie,
+
+City
+    id
+    name
+    List<Theatre>
+
+Theatre
+    id
+    name
+    List<Auditorium>
+    List<Show>
+
+Auditorium
+    id
+    List<Seat>
+
+
+Seat
+    id
+    SeatType
+
+SeatType
+    silver
+    gold platinum
+
+Movie
+    id
+    name
+    language
+    runTime(int in minutes)
+
+Show
+    id
+    movie
+    auditorium
+    startTime
+    List<ShowSeat>
+
+    Show createShow(Movie movie,Auditorium,Map<SeatType,Integer> price)
+
+
+
+
+ShowSeat
+    id
+    Seat
+    price
+    ShowSeatStatus(available/booked)
+
+
+
+Ticket
+    id
+    user
+    show
+    List<ShowSeat>
+    ticketStatus(success/failure)
+
+    bookTicket(User user, Show show, List<ShowSeat> bookedSeats)
+
+
+Payment
+    ticket
+    paymentMethod
+    paymentStatus
+    int amount;
+
+    void doPayment()
+
+
+
+
+
+
