@@ -1,0 +1,25 @@
+Suppose we want to create robot object
+
+Robot
+    int height 4 byte
+    String type (humanoid/computer) 50 byte
+    int x 4 byte
+    int y 4 byte
+    Sprite shape 30 kb
+
+on an average an objects require 31 kb
+
+and if we want to create 1 lakh objects then it will be 31 lakh kb of space
+which will give out of memory error
+
+one thing we can notice from above is that height type and shape of particular robot will remain same
+for all human robots these parameters won't change
+and these types which are common are called intrinsic states
+and x any y position will different they are call extrinsic states
+
+
+1. remove extrinsic properies.
+2. initialize intrinsic properties using constructor
+3. remove setter methods because intrinsic properties once initialize can't be changed.
+4. inorder to initialize extrinsic properties we will use method.
+5. If we want to create new robot we will get the object from cache
