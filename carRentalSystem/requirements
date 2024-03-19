@@ -1,0 +1,94 @@
+Car Rental System
+
+List<User> users
+List<Store> stores
+
+
+User
+Location
+Store
+VehicleInventory
+Vehicle
+Booking
+Bill
+Payment
+
+user
+	id
+	name
+	drivingLicense
+	Location
+
+
+Location
+	area
+	city
+	state
+	pincode
+
+
+Store
+	id
+	Location
+	List<Booking> bookings
+	VehicleInventory
+	StoreStatus
+
+	addBooking(Booking booking);
+
+
+
+
+
+
+Vehicle
+	id
+	number
+	name
+	VehicleType
+	mfd year
+	kms driven
+	Store store
+
+
+
+VehicleInventory
+	all the crud operations will be done here
+	List<Vehicle>
+
+	findVehicles(Store id)
+
+	addVehicle(Vehicle vehicle);
+
+	fetchVehicle(int vehicleId);
+
+
+Booking
+	id
+	Store pickupStore;
+	user
+	Store dropstore;
+	LocalDateTime pickupTime
+	LocalDateTime dropTime
+	Vehicle vehicle
+	BookingStatus
+
+Bill
+	Booking booking
+	double amount
+	BillStatus (Paid/Not Paid)
+
+	calculateBill()
+
+	payBill()
+
+Payment
+    id
+	Bill
+	PaymentMethod (credit/Debit/NetBanking/UPI)
+	PaymentStatus
+
+
+
+
+
