@@ -1,0 +1,39 @@
+Group
+    id
+    User createdBy
+    List<Expense> expenses
+    List<User> users
+
+Expense
+    id
+    double Amount
+    List<UserExpense>
+    group
+
+UserExpense
+    id
+    user
+    double amount
+    ExpenseType (paid,Had to pay)
+    expense
+
+
+User
+    id
+    name
+    phone
+    List<Group>
+
+
+user service
+    addUser(String name,String phone);
+    assignGroup(userId,groupId);
+
+
+Group service
+    createGroup(userId);
+    addUser(groupId,userId);
+    addExpense(int groupId,double amount, List<Usrer>);
+
+ExpenseService
+    addUserExpense(expenseId,List<UserExpense>)

@@ -1,0 +1,88 @@
+In splitwise
+we create group
+where one person split the expense and it is equally divided
+However in out app
+we want below functionalities
+1. unequal distribution (i.e if 100 is split among three persons one person would be paying 50 and other two would be paying 25 each)
+2. another scenaior where(out of 3 only b and c have to pay(50) but on their behalf a has paid 50 but a haven't eaten anything
+so b have to pay 15 and c has to pay 35)
+3. a and b only went to shopping where b paid on behalf of a
+
+we have to cover all these functionalities
+
+Let's take a scenario
+
+suppose a group of 4 friends went to trip
+every time either some of them are involved or all of them are involved
+some paid on some behalf so, rather then settling each expense individually
+we will find out over all who will paid whom
+Expense -1 total amount = 300
+paid by
+a-100
+b-200
+
+had to pay
+a-50
+b-50
+c-100
+d-100
+
+balance
+a=50(will get this much amount since he has paid 100 but his share was only 50)
+b=150
+c=-100(-100 means c has to pay this much amount)
+d=-100(d has to pay this much amount)
+for all the cases refer:https://airlock-on-edge.woolf.university/?url=https%3A%2F%2Fscaler-production-new.s3.ap-southeast-1.amazonaws.com%2Fattachments%2Fattachments%2F000%2F031%2F924%2Foriginal%2FCODE_SPLITWISE__16_06_23.pdf%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAIDNNIRGHAQUQRWYA%252F20240322%252Fap-southeast-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20240322T150218Z%26X-Amz-Expires%3D561600%26X-Amz-SignedHeaders%3Dhost%26X-Amz-Signature%3D82e38c47c47634953257d3846436a457ab54571811343e46d52c7618ed5e5bbd&resourceId=68d7d05d-fc7e-4a80-a162-9d2567f7a86a&studentId=45a7afc5-f7d3-4a9a-8a25-f42534f8c3eb&token=eyJhbGciOiJIUzI1NiJ9.eyJpZCI6IjQ1YTdhZmM1LWY3ZDMtNGE5YS04YTI1LWY0MjUzNGY4YzNlYiIsImlzcyI6InVybjpXb29sZlVuaXZlcnNpdHk6c2VydmVyL3NlcnZpY2UvYWNjZXNzIiwiaXNWZXJpZmllZCI6dHJ1ZSwia2luZCI6Im9hdXRoIiwib3JnIjp7Imdyb3VwcyI6W10sImlkIjoiOWIxN2Y1Y2UtMTA3OC00ZmRmLWFlYzAtMDJiZjRlY2ZiMGE2In0sInNjb3BlIjoiKiJ9.ZUGIiXzn2No6-ecyPEejlROK_ZNa9Tm8awR150lMNt8
+
+
+------
+expense - 2 balance
+a=-500
+b=-500
+c=1000
+-------
+expense - 3 balance
+a=-40
+b=-10
+c=50
+
+
+now in order to find the outstanding amount
+we will add amount of individual user
+
+a = -490
+b = -360
+c = 900
+d = -50
+
+if you add up all the amounts it will be zero
+
+now we will arrange every user in clockwise direction
+
+
+a will pay to b will pay to c and d will pay to c (this is one such approach)
+
+a will pay b
+a will have 0 and b has to pay 850
+b will pay c so c is now expecting 50 more
+c won't pay anyone but d will pay and c will receive the remaining 50
+by this the amount associated will every user will become zero
+another strategy
+
+negatives are borrowers
+and postive are lenders
+
+find maximum borrower and maximum lender
+borrower will pay to lender
+
+borrowers are
+a = -490
+b = -360
+d = -50
+
+lenders are
+c = 900
+
+
+first a will pay c
+a becomes zeer
