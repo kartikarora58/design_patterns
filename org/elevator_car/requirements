@@ -1,0 +1,72 @@
+1. a building can have multiple floors.
+2. a building can have multiple elevator cars.
+
+building
+    - List of floor
+    - List of elevator
+
+
+ElevatorCar
+    -id
+    -floor
+    -internalButtons
+    -direction
+
+    --------------------
+    moveElevator(int floorId,direction)
+
+
+
+InternalButtons
+    -InternalButtonRequestDispatcher
+
+    pressButton(floorNumber,elevator)
+
+
+<<ElevatorController>>
+    moveElevator(int floorId)
+
+ElevatorController
+    elevator
+    PriorityQueue minPriorityQueue
+    PriorityQueue maxPriorityqueue
+
+    ------------------------
+    moveElevator()
+    {
+        while(true)
+        {
+            while(!minQ.isEmpty())
+            {
+                int floor = minQ.remove();
+                elevator.move(floor,up);
+            }
+            while(!maxQ.isEmpty())
+            {
+                int floor = minQ.remove();
+                elevator.move(floor,up);
+            }
+        }
+    }
+    submitInternalRequest(int floorId)
+    {
+        if(floorId>elevator.getCurrentFloor())
+        {
+           insert into minQ
+        }
+        else
+            insert into maxQ
+    }
+
+    submitExternalRequest(int floor,int direction)
+    {
+        // if elevator direction is up, but elevator floor is lesser than our floor
+            insert into minQ
+           else
+            insert into maxQ
+        // if elevator diretion is down, but elevator floor in greater than our floor
+            // insert into maxQ
+           else
+            // insert into minQ
+    }
+
