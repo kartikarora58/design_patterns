@@ -1,0 +1,88 @@
+1. Able to manage inventory.
+2. show results of specific warehouse only(like nearest)
+3. user can register and add items to cart.
+4. pay and generate invoice
+
+
+entity
+Product
+    id
+    name
+    description
+    quantity
+    ProductStatus(AVAILABLE/SOLD OUT)
+    ---------------
+    crud operations on product
+
+
+
+ProductCategory
+    id
+    name
+    List<Product>
+    ------------------
+    crud operations
+
+Inventory
+    List<ProductCategory>
+    -------------------
+    crud operations
+
+Warehouse
+    Inventory
+    Address
+
+Address
+    -latitude
+    -longitude
+
+User
+    id
+    name
+    phoneNumber
+    cart
+
+
+Cart
+    Map<productId,countOfProducts>
+    -----------------------
+    cruds on cart
+
+order
+    id
+    user
+    Map<productId,countOfProducts>
+    payment
+    invoice
+
+Payment
+    id
+    order
+    paymentStatus(success/noSuccess)
+    paymentAmount
+    PaymentType(COD,CARD,UPI)
+
+
+PaymentStrategy
+    all these strategies
+
+Invoice
+    totalAmount;
+    tax
+    finalPrice
+
+
+
+WarehouseFindingStrategy
+    FindNearestWareHouse
+
+
+
+
+
+
+
+
+
+
+
