@@ -1,0 +1,58 @@
+Car Rental System
+
+1.User can see the cars and see the car features/description
+2. user can make booking.
+3.
+
+
+
+User
+    id
+    name
+    licenseNumber
+    phone
+    email
+    List<Booking> bookings
+
+
+Vehicle
+    id
+    kmsDriven
+    Name
+    yearOfManufacturing
+    hourlyPrice
+
+
+
+Booking
+    user
+    vehicle
+    fromDateTime
+    toDateTime
+
+
+    Trie{
+        char Trie[26];
+        boolean eow = true;
+        int frequency++;
+    }
+
+
+    Diw
+
+            5        3            2
+    hi -> ["hiking","hindi","hindustan"]
+
+
+
+    hik -> ["hiking"]
+
+    h -> ["hikingh"]
+
+
+
+
+    String, frequency
+    hiking 22
+
+

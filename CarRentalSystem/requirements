@@ -1,0 +1,135 @@
+Car Rental System
+
+1. user will open app cars of particular store will list
+2. user can see the details of the car, do payment and make a booking.
+3. store and user will get notified about the booking
+
+
+
+User
+Store
+<<StoreFindingStrategy>>
+    -FindNearestStore
+Vehicle
+Booking
+Payment
+Inventory (add/remove cars)
+BookingPublisher
+UserSubscriber
+StoreSubscriber
+
+
+VehicleRentalSystem
+    List<Store> stores
+    List<User> users
+
+
+User
+    name
+    address
+    licenseNumber
+    List<Booking> bookings
+
+    userController
+        createUser(name,address,licenseNumber)
+        addBookingForUser(user,booking)
+
+
+Store
+    name
+    address
+    StoreStatus (ACTIVE/INACTIVE)
+    List<Vehicle>
+    List<Booking> bookings
+
+    storeController
+        createStore(name,address)
+        addVehicle(store,Vehicle)
+
+
+
+
+
+<<StoreFindingStrategy>>
+    Store findStore();
+
+
+NearestStoreFindingStrategy
+    // return nearest store
+
+
+Slot
+    LocalDateTime from;
+    LocalDateTime to;
+
+Vehicle
+    id
+    name
+    yearOfManufaturing
+    VehicleType(SUV/HATCHBACK/BIKE)
+    kmsDriver
+    Status(ACTIVE/INACTIVE)
+    List<Slot> bookedSlots
+    hourlyRate
+
+
+VehicleController
+    createVehicle(name,yearOfManufacturing,kmsDriven,hourlyRate)
+    addNewBookingSlot(vehicle,Slot)
+
+
+Booking
+    user
+    vehicle
+    slot
+    store
+    BookingStatus(INPROGRESS/CONFIRMED/FAILED)
+    Payment
+
+
+    BookingController
+
+        BookingNotifier
+
+        BookingController()
+        {
+
+        }
+
+        bookVehicle(user,vehicle,store,slot,PaymentTye)
+            // create BookingObject
+            // do payment
+            // if Success
+            // block vehicle for that particular slot
+            // sendNotification to store and user
+
+
+Payment
+    id
+    booking
+    int amount
+    PaymentStatus(SUCCESS/FAIL)
+    PayementType(CARD/UPI/NETBANKING)
+
+<<PaymentStragetery>>
+    Boolean makePayment()
+
+
+UPIPaymentStrategy
+    Boolean makePayment()
+
+
+Booking Notifier
+
+
+
+
+<<BookingSubscriber>>
+    sendNotification(Booking booking)
+
+    UserSubscriber
+
+StoreSubscriber
+
+
+

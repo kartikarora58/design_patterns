@@ -1,0 +1,90 @@
+player name
+	runs
+	bowls
+	4s
+	6s
+	strike rate
+
+bowler name
+	o
+	m
+	r
+	w
+	er
+
+Match
+	Team A;
+	Team B;
+	String address;
+	Team winner;
+	Innning innings[];
+	Team toss;
+	----------
+	startMatch();
+
+Team
+	List<Player> players
+	BattingController;
+	BowlingController;
+
+BattingContoller
+	Queue<Player> player
+	Player strike;
+	Player nonStrike;
+
+
+Player
+	PlayerInfo player
+	PlayerType type
+	BattingScoreCard scoreCard
+	BowlingScoreCard scoreCard
+
+
+
+Inning
+	Team bowlerTeam
+	Team battingTeam
+	noOfOvers
+	List<Over> over
+	-----------------
+	startInnings()
+
+BattingScoreCard
+	int totalRuns;
+	int bowlsPlayed;
+	int 4s;
+	int 6s;
+	double strikeRate;
+
+BowlingScoreCard
+	int overs;
+	int maiden;
+	int runs;
+	int wickets;
+	double economyRate;
+
+Over
+	int overNumber;
+	List<Ball> bowls;
+	Player bowledBy;
+
+ball
+	int number;
+	Player bowledBy;
+	Player facedBy;
+	int runs;
+	BowlType(fair,wide,no-ball)
+	Lis
+	---------
+	throwBall()
+	notify()
+
+
+scoreUpdateObserver
+	updateScore(Ball ball);
+
+
+BattingScoreUpdateNotifier
+BowlingScoreUpdateNotifier
+
+

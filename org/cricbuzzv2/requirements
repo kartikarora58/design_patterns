@@ -1,0 +1,124 @@
+
+
+Math
+	Team a
+	Team b
+	List<Innning>
+	MatchType (T20/one day)
+	int overs
+	Team Winner
+
+	start()
+		toss(heads A will bat, else b will bat)
+		startFirstInnings
+		startSecondInnings
+		compare both the inningsScore and declare winner
+		else draw the match
+
+
+
+Team
+	name
+	List<Player> players
+	battingController]
+	bowlingController
+
+
+Innings
+	battingTeam
+	bowlingTeam
+	int totalRunsScored
+	int wickets
+	InningStatus
+	List<Over> overs
+	int targetScore
+	int overs
+
+
+	start()
+		-loop over the overs
+		-if wickets are 10 stop the innings
+		-if chasing and score is achieved then also stop the innings
+
+
+BattingController
+	Player strike
+	Player nonStike
+	List<Player>
+	--------------
+	rotateStike()
+	selectNextbatsMan()
+
+BowlingController
+	currentBowler
+	List<Player>
+	----------------
+	selectNextBowler
+
+
+
+Over
+	List<Ball> ball
+	Player
+	Inning
+
+	startOver()
+	-----
+		iterate over each bowl
+
+
+
+
+Ball
+	Player bowledBy
+	Player facedBy
+	runs
+	BallType(NO_BALL,WIDE,WICKET BALL)
+	List<PlayerStatUpdateSubs>
+
+	throwBall(PlayerStatUpdateSubs)
+
+
+<<PlayerStatUpdateSubs>>
+	updateStats(Ball ball)
+
+
+battingUpdate Bowling update
+
+
+
+
+Player
+	name
+	playertype(batsman, bowler, all_rounder)
+	PlayerBattingStats
+	PlayerBowlingStats
+
+
+PlayerBattingstats
+	player
+	runs
+	ballsFaced
+	4s
+	6s
+	strikeRate
+
+PlayerBowlingStats
+	int overs
+	maiden
+	runs
+	wicket
+	economyRate
+
+StatusUpdatePublisher
+    static statusUpdatePublisher
+    List<sibscriber>
+    getPublisher
+
+    notifysubscribers()
+
+
+
+DisplayRuns
+    runs
+    wickets
