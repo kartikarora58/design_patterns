@@ -1,0 +1,103 @@
+inventory management system
+
+1. Manage Inventory
+2. user can buy
+3. add products to cart
+4. place order
+5. select various modes of payment
+6. corresponding to each order invoice will be generated.
+7. once the order is placed send notification to seller, customer, logistic partner
+
+
+Product
+User
+Inventory
+Cart
+order
+Payment
+Invoice
+Seller
+
+
+Product
+    id
+    name
+    quantity
+    price
+    ProductStatus(AVAILABLE/OUT_OF_STOCK)
+
+ProductCategory
+    id
+    name
+    List<Product>
+    ---------------
+    crud operations
+
+
+Inventory
+    List<ProductCategory>
+    seller
+
+
+warehouse
+    id
+    name
+    address
+    inventory
+    SellerStatus(active/inactive)
+
+
+User
+    id
+    name
+    address
+    cart
+
+UserService
+    placeOrder(int id,int cart_id)
+    // create order
+    // do payment
+    // send notification
+
+cart
+    id
+    Map<productId,quantity>
+
+
+Order
+    user
+    cart
+    orderStatus
+    warehouse
+
+
+OrderService
+    createOrder(user,cart)
+
+
+
+
+Payment
+    order
+    amount
+    paymentType
+    PaymentStatus
+
+
+    PaymentService
+    makePayment(double amount,PaymentType paymentType)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
