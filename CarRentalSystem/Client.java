@@ -6,5 +6,4 @@ public class Client {
 
     }
 
-    public void initializeCarRentalSystem()
 }

@@ -1,0 +1,22 @@
+adapter design pattern used to connect two incompatible objects
+ It acts as a bridge between two incompatible interfaces, making them work together
+ 1. Suppose you are sending a url and that url expects json as payload
+ 2. however, Your have xml as payload so you will use adapter design pattern
+
+
+Json
+    string jsonString
+    -------------------
+    getJsonString()
+
+
+Xml
+    string xmlString
+    --------------------
+    getXmlString()
+
+
+Adapter extends Json
+    xml
+    -------------------------
+    getJsonString()
