@@ -1,0 +1,66 @@
+user will insert card and pin
+atm will authenticate the user, if failed return the card and displays the error message
+once verified
+user can withdraw balance/ check balance
+if withdraw then update the user balance
+
+
+
+state
+    insertCard(cardNumber,pin)
+    cancel()
+    checkBalance()
+    withdrawCash()
+    enterAmount()
+
+User
+    id
+    accountNumber
+    card
+    balance
+
+Card
+    cardNumber
+    pin
+
+states
+    idlestate
+    hasCardState
+    AmountWithdrawlstate
+    outOfCashState
+    OutOfOrder state
+
+
+Atm
+    currentState
+    // all the states
+    // mappingOfCardNumberTouser
+    //currentActiveUser
+    int amount
+
+    constructor initialize all thestates and currentState
+
+
+
+IdleState
+    atmMachine
+    insertCard(cardNumber,pin)
+        findUser using card number
+        initialize the user
+        set atm currentstate to has card state
+
+hasCardState
+    checkBalance()
+    pressWithdrawlButton()
+
+
+AmountWithdrawlState
+       withdrawCash(amount)
+        // reduce the amount in atm
+        // and for user bank balance also
+        again go to has card state
+
+
+
+
+

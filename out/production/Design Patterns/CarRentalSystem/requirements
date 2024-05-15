@@ -1,58 +1,135 @@
 Car Rental System
 
-1.User can see the cars and see the car features/description
-2. user can make booking.
-3.
+1. user will open app cars of particular store will list
+2. user can see the details of the car, do payment and make a booking.
+3. store and user will get notified about the booking
 
 
 
 User
-    id
+Store
+<<StoreFindingStrategy>>
+    -FindNearestStore
+Vehicle
+Booking
+Payment
+Inventory (add/remove cars)
+BookingPublisher
+UserSubscriber
+StoreSubscriber
+
+
+VehicleRentalSystem
+    List<Store> stores
+    List<User> users
+
+
+User
     name
+    address
     licenseNumber
-    phone
-    email
     List<Booking> bookings
 
+    userController
+        createUser(name,address,licenseNumber)
+        addBookingForUser(user,booking)
+
+
+Store
+    name
+    address
+    StoreStatus (ACTIVE/INACTIVE)
+    List<Vehicle>
+    List<Booking> bookings
+
+    storeController
+        createStore(name,address)
+        addVehicle(store,Vehicle)
+
+
+
+
+
+<<StoreFindingStrategy>>
+    Store findStore();
+
+
+NearestStoreFindingStrategy
+    // return nearest store
+
+
+Slot
+    LocalDateTime from;
+    LocalDateTime to;
 
 Vehicle
     id
-    kmsDriven
-    Name
-    yearOfManufacturing
-    hourlyPrice
+    name
+    yearOfManufaturing
+    VehicleType(SUV/HATCHBACK/BIKE)
+    kmsDriver
+    Status(ACTIVE/INACTIVE)
+    List<Slot> bookedSlots
+    hourlyRate
 
+
+VehicleController
+    createVehicle(name,yearOfManufacturing,kmsDriven,hourlyRate)
+    addNewBookingSlot(vehicle,Slot)
 
 
 Booking
     user
     vehicle
-    fromDateTime
-    toDateTime
+    slot
+    store
+    BookingStatus(INPROGRESS/CONFIRMED/FAILED)
+    Payment
 
 
-    Trie{
-        char Trie[26];
-        boolean eow = true;
-        int frequency++;
-    }
+    BookingController
+
+        BookingNotifier
+
+        BookingController()
+        {
+
+        }
+
+        bookVehicle(user,vehicle,store,slot,PaymentTye)
+            // create BookingObject
+            // do payment
+            // if Success
+            // block vehicle for that particular slot
+            // sendNotification to store and user
 
 
-    Diw
+Payment
+    id
+    booking
+    int amount
+    PaymentStatus(SUCCESS/FAIL)
+    PayementType(CARD/UPI/NETBANKING)
 
-            5        3            2
-    hi -> ["hiking","hindi","hindustan"]
-
-
-
-    hik -> ["hiking"]
-
-    h -> ["hikingh"]
-
+<<PaymentStragetery>>
+    Boolean makePayment()
 
 
+UPIPaymentStrategy
+    Boolean makePayment()
 
-    String, frequency
-    hiking 22
+
+Booking Notifier
+
+
+
+
+<<BookingSubscriber>>
+    sendNotification(Booking booking)
+
+    UserSubscriber
+
+StoreSubscriber
+
 
 
