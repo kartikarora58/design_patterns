@@ -1,0 +1,54 @@
+there can be n number of players
+players will throw dice and number between 1 to 6 will appear, and the player position will be moved
+there can be n number of snakes and m number of ladders
+it should be taken from user
+
+
+Player
+Board
+Cell
+Game
+
+Player
+    id
+    name
+    cell
+    --------
+    performMove()
+    // return cell
+
+
+
+Board
+    List<List<Cell>>
+    -----------------
+    initializeSnakes(int n)
+    // select 2 numbers
+    // on bigger cell assign smaller
+
+    initializeLadders(int m)
+
+
+
+
+Cell
+    row
+    col
+    jump
+
+
+
+
+Game
+    List<Player> players
+    Board
+    GameStatus
+    gameWinner
+    countOfSnakes
+    countOfLadders
+
+    startGame
+    // fetch currentPlayer
+    // player will perform move
+    // player will be on a particular cell
+    // check if the player is wiinner

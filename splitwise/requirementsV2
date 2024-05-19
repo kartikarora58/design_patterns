@@ -1,0 +1,54 @@
+1. user can create group and user can be part of multiple groups
+2. add users to a group
+3. create expense -> add userExpense (who paid how much and how much had to pay)
+4. add multiple expense to the group.
+5. when group admin clicks settle Group
+
+
+User
+Group
+Expense
+UserExpense
+
+
+User
+    id
+    name
+    List<Group>
+
+
+UserController
+    createUser(int id,int name);
+    addUserToGroup(User user,Group)
+
+Group
+    id
+    createdBy
+    List<User>
+    List<Expense>
+
+    GroupController
+
+    addExpense(expense,List<userExpense>)
+    settleGroup(Group group)
+    {
+
+    }
+
+
+Expense
+    id
+    amount
+    List<UserExpense>
+
+    ExpenseController
+    addExpense(expense)
+    addUserExpense(Expense,UserExpense)
+
+UserExpense
+    id
+    amount
+    expense
+    expenseType
+
+expenseType(PAID/HAD_TO_PAID)
