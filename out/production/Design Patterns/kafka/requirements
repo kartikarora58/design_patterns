@@ -1,0 +1,111 @@
+1. publisher can publish data to multiple topics
+2. consumer can consume data from mutiple topics
+3. consumer should have the message acknowledgement
+
+
+Publisher
+Consumer
+Message
+Topic
+
+
+
+// publisher entity
+Publisher
+    id
+    name
+    List<Topic> topics
+    --------------------
+    getters and setters
+
+
+// rest apis
+PublisherController
+    topicController
+---------------------------
+    -publishMessage(PublishMessageRequestDTO);
+    -addPublisher(name)
+    -removePublisher(id)
+    -assignTopicToPublisher(publisherId,topicId)
+
+PublishMessageRequestDTO
+    int publisherId
+    String bodyMessage
+
+
+// dal layer
+PublisherRepository
+    List<Publisher> publisher;
+    ----------------------------
+    addPublisher(Publisher publisher)
+    removePublisher(id)
+    assignTopicToPublisher(Topic topic, publisherId)
+
+
+
+Topic
+    id
+    name
+    List<Message> messages
+    -----------------------
+    getters and setters
+
+
+
+TopicController
+    createTopic(String name)
+    addMessage(Topic topic,Message message)
+    deleteTopic(topicId)
+
+
+
+TopicRepository
+    List<Topic>
+    ----------------------
+    createTopic(Topic topic)
+    deleteTopic(topicID)
+
+
+
+
+
+Message
+    int id
+    String body
+    --------------
+    getters and setters
+
+
+
+
+
+SubscribedTopic
+    Topic topic
+    int offset
+
+
+
+Consumer
+    id
+    name
+    List<SubscribedTopic>
+
+
+
+ConsumerController
+    createConsumer(String name)
+    subscribeTopic(SubscribeTopicRequestDTO subscribeConsumerRequestDTO)
+    startConsumer(int consumerId)
+    deleteConsumer
+
+
+
+
+SubscribeTopicRequestDTO
+    int consumerID
+    int topicId;
+
+
+
+ConsumerRepository
+    List<>

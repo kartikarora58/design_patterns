@@ -1,110 +1,82 @@
-public class Sample {
-    static class Node{
-        int data;
-        Node next;
-        Node(int data)
-        {
-            this.data = data;
-        }
-    }
-    static class LinkedList{
-        Node head;
-        Node tail;
-    }
-    public static void add(Node head,Node tail,Node node)
+
+class EvenPrinter extends Thread{
+    final boolean[] flag;
+    int idx;
+
+    EvenPrinter(int idx, boolean[] flag)
     {
-        if(head == null)
-        {
-            head = node;
-            tail = node;
-        }
-        else
-        {
-            tail.next = node;
-            tail = node;
-        }
-
+        this.idx = idx;
+        this.flag = flag;
     }
-
-    public static void merge(Node head,Node tail,Node tempHead,Node tempTail)
+    public void run()
     {
-        if(head == null)
+        synchronized (flag)
         {
-            head = tempHead;
-            tail = tempTail;
-        }
-        else{
-            tail.next = tempHead;
-            tail = tempTail;
-        }
-    }
-    static Node divide(int N, Node head){
-        Node evenHead = null;
-        Node evenTail = null;
-
-        Node oddHead = null;
-        Node oddTail = null;
-
-        while(head!=null)
-        {
-            if((head.data&1) == 0)
+            while(idx<=10)
             {
-                if(evenHead == null)
-                {
-                    evenHead = head;
-                    evenTail = head;
+                if(flag[0]) {
+                    System.out.println("even-"+idx);
+                    idx += 2;
+                    flag[0] = !flag[0];
+                    flag.notify();
                 }
                 else{
-                    evenTail.next = head;
-                    evenTail = head;
+                    try {
+                        flag.wait();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
-            else{
-                if(oddHead == null)
-                {
-                    oddHead = head;
-                    oddTail = head;
-                }
-                else{
-                    oddTail.next = head;
-                    oddTail = head;
-                }
-            }
-
-            head = head.next;
         }
-
-        if(oddHead == null)
-            return evenHead;
-        else if(evenHead == null)
-            return oddHead;
-        else{
-            evenTail.next = oddHead;
-            return evenHead;
-        }
-
 
     }
-    public static void main(String[] args) {
+}
 
-        LinkedList ob = new LinkedList();
-        int arr[]= {8,2,4,6,17,15,9};
-        for(int item:arr)
+class OddPrinter extends Thread{
+    final boolean[] flag;
+    int idx;
+
+    OddPrinter(int idx, boolean[] flag)
+    {
+        this.idx = idx;
+        this.flag = flag;
+    }
+
+    public void run()
+    {
+        synchronized (flag)
         {
-            Node temp = new Node(item);
-            if(ob.head == null)
+            while(idx<=10)
             {
-                ob.head = temp;
-                ob.tail = temp;
-            }
-            else
-            {
-                ob.tail.next = temp;
-                ob.tail = temp;
+                if(!flag[0]) {
+                    System.out.println("odd-"+idx);
+                    idx += 2;
+                    flag[0] = !flag[0];
+                    flag.notify();
+                }
+                else{
+                    try {
+                        flag.wait();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
         }
 
-        System.out.println(divide(7,ob.head));
+    }
+}
+public class Sample{
+    public static void main(String[] args) throws InterruptedException {
+        boolean[] flag = {true};
+        EvenPrinter evenPrinter = new EvenPrinter(2,flag);
+        OddPrinter oddPrinter = new OddPrinter(1,flag);
+        evenPrinter.start();
+        oddPrinter.start();
+
+        evenPrinter.join();
+        oddPrinter.join();
 
     }
 }
