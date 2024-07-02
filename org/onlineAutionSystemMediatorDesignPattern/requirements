@@ -1,0 +1,43 @@
+Design an online auction system.
+1. There will be bidders, who can bid amount.
+2. First auctioneer will get the bid amount of a bidder and will notify other bidders.
+3. Bidders are not directly interacting with each other.
+
+
+Responsibilities of a bidder
+    can sendNotification to auctioneer(I want to place a bid of amount);
+    can receive notification from auctioneer, if someone else has placed the bid.
+    Thus, it means bidder is interacting with the auctioneer.
+    So, bidder will have auctioneer object
+
+
+Responsibilities of an auctioneer
+    receive the bid by a bidder
+    notify other bidders.
+    Thus, it will have list of bidders
+
+
+
+<<Colleague>>
+     placeBid(int amount)
+     receiveBidNotification(int amount)
+
+Bidder
+    AuctionMediator
+    ---------------------
+    placeBid(int amount)
+    receiveBidNotification(int amount)
+
+
+<<Mediator>>
+    addBidder(Colleague bidder);
+    placeBid(Colleague colleague,int amount)
+
+
+
+Auctioneer
+    List<Colleague> colleague
+    ----------------------------
+    addBidder(Colleague bidder)
+    placeBid(Colleague colleague,int amount)
+
