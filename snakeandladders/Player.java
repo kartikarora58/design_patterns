@@ -5,6 +5,7 @@ import java.util.Random;
 public class Player {
     String name;
     Cell cell_;
+
     Player(String name) {
         this.name = name;
     }
@@ -52,22 +53,11 @@ public class Player {
         // otherwise you are bit by a snake
 
 
-        if (newPosition!=0)
-        {
-            int newRow = newPosition/10;
-            int
+        if (newPosition != 0) {
+            int newRow = newPosition / 10;
         }
-                && newPosition>currentPosition)
-        {
-            System.out.println(name + " Hey you climbed the ladder with new position "+newPosition);
-
-
-
-        }
-
-
+        return null;
     }
-
 
 
 }

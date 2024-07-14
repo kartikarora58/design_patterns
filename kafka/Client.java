@@ -47,7 +47,20 @@ public class Client {
 
 
         // publish message
-        kafkaController.publishMessage(flipkartPublisher.getId(), "Hey!! there is a new order");
+        kafkaController.publishMessage(flipkartPublisher.getId(), "{\n" +
+                "     order_id\n" +
+                "     productName:\n" +
+                "     productQuantity\n" +
+                "\t custmerName:\n" +
+                "     address\n" +
+                " }");
+//        {
+//          order_id
+//          productName:
+//          productQuantity
+//          custmerName:
+//          address
+//        }
 
 
 

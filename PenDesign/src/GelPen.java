@@ -1,2 +1,3 @@
-public class GelPen extends Pen implements LisRef{
+public class GelPen extends Pen implements
+        ;LisRef{
 }

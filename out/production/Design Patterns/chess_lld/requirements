@@ -1,0 +1,79 @@
+requirments
+
+1. Black team and white team.
+2. Follow all the chess rules
+3. 8 pawns and initially a pawn can take two steps but only once and then can take only one step
+4. can attack diagonally only if opposite color ia preaent
+5. 1 king, 1 queen, 2 bishop, 2 knight and 2 rook
+6. only knight can jump across other pieces, where as other pieces need to take care such that there shouldn't
+    be any other piece in between source and destication
+
+
+Board
+Player
+Cell
+Piece
+
+    Board
+        -List<List<Cell>>
+    --------------------------
+
+
+    BoardService
+    ----------------------
+    Board createBoard()
+    boolean checkIfValid(Board board, source, destination)
+    boolean performMove(board,source,destination) -> return true if the current user is the winner
+    void displayBoard(board)
+
+
+    Cell
+    i
+    j
+    piece
+    ------------------------
+
+
+    piece
+    id
+    pieceType
+    pieceColor
+
+
+    Player
+        id
+        name
+        color
+
+
+    PlayerService
+        boardService
+        ---------------
+        performMove(Pair source,Pair destination,Player player,Board board)
+        // whether the move is valid
+        // if not return invalid move
+        // continue perform the move
+
+
+GameController
+
+    Player player1
+    Player player2
+    GameStatus
+    BoardService
+    PlayerService
+
+
+
+    Player voidStartGame(player1, player2)
+        initialize the board
+
+
+
+
+
+    Board initializeBoard()
+
+
+
+

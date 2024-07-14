@@ -21,8 +21,6 @@ UserController
     createUser(int id,int name);
     addUserToGroup(User user,Group)
 
-
-
 Group
     id
     createdBy
@@ -30,9 +28,12 @@ Group
     List<Expense>
 
     GroupController
+
     addExpense(expense,List<userExpense>)
     settleGroup(Group group)
+    {
 
+    }
 
 
 Expense
