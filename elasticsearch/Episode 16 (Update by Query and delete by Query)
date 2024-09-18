@@ -1,0 +1,28 @@
+In Elasticsearch, an Update by Query operation allows you to update documents that match a given query. This is a bulk update operation where you provide a query to select the documents, and then specify the updates that should be applied to those documents. Unlike the regular update operation, which targets a specific document by ID, update_by_query allows updating multiple documents at once.
+
+Here’s how to use update_by_query in Elasticsearch:
+
+Basic Structure:
+Query: Define the query that selects which documents to update.
+Script: Define the script that modifies the documents.
+Example of update_by_query:
+
+POST /index_name/_update_by_query
+{
+  "script": {
+    "source": "ctx._source.field_name = params.value",
+    "params": {
+      "value": "new_value"
+    }
+  },
+  "query": {
+    "term": {
+      "field_name": "old_value"
+    }
+  }
+}
+
+Explanation:
+index_name: The name of the Elasticsearch index where the documents are stored.
+script: The part that specifies the update. In this case, it changes the field_name to new_value.
+query: This is where you define the selection criteria. In this case, it's selecting documents where field_name equals old_value.
