@@ -1,0 +1,7 @@
+     35 (Doc ID 2)
+    /   \
+ 30 (Doc ID 1)  40 (Doc ID 3)
+
+
+For storing numeric values, instead of creating inverted index it creates a BST structure because
+range queries are often used with numeric numbers
