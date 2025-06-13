@@ -1,0 +1,96 @@
+If a number is greater than
+2
+53
+−
+1
+2
+53
+ −1 (which is 9,007,199,254,740,991), certain issues arise due to the limitations of how numbers are represented in JavaScript (and by extension, JSON, since JSON was originally designed with JavaScript in mind).
+
+The Limitations: The 53-bit Precision Barrier
+JavaScript uses the IEEE 754 double-precision floating-point format to represent all numbers (both integers and floating-point numbers). In this format:
+
+Integers up to
+2
+53
+−
+1
+2
+53
+ −1 (which equals 9,007,199,254,740,991) can be represented precisely.
+Once you go beyond this limit, integers lose precision. This is because, after this threshold, not all integers can be represented accurately due to the way floating-point arithmetic works. The numbers are stored in a compressed format that sacrifices precision for extremely large numbers.
+Example of the Issue
+Consider the following in JavaScript:
+
+javascript
+Copy code
+console.log(9007199254740991);  // 9,007,199,254,740,991 (2^53 - 1)
+console.log(9007199254740992);  // 9,007,199,254,740,992 (precisely one larger)
+console.log(9007199254740993);  // 9,007,199,254,740,992 (incorrect!)
+The last number, which should be 9007199254740993, is represented incorrectly as 9007199254740992 because the precision is lost.
+
+Implications in JSON
+JSON does not have distinct integer or floating-point types—there's only the number type. So, if you're working with numbers greater than
+2
+53
+−
+1
+2
+53
+ −1, precision loss can occur when encoding or decoding JSON. For instance:
+
+Large numbers might get rounded or truncated.
+Precision-sensitive applications like banking or scientific calculations could end up with inaccurate results.
+How to Handle Large Numbers in JSON
+Use Strings for Large Integers: If you need to transmit very large integers (greater than
+2
+53
+−
+1
+2
+53
+ −1) in JSON, consider sending them as strings rather than numbers. This way, you avoid precision loss when the data is parsed.
+
+Example:
+
+json
+Copy code
+{
+  "largeNumber": "9007199254740993"
+}
+After parsing the JSON, you can convert the string back to a number in a language that supports arbitrary-precision numbers.
+
+Arbitrary-Precision Libraries: In JavaScript (or other languages), you can use libraries that support arbitrary-precision numbers. For example:
+
+BigInt in JavaScript can handle very large integers:
+javascript
+Copy code
+const largeNumber = BigInt("9007199254740993");
+console.log(largeNumber); // 9007199254740993n
+In Python, integers have arbitrary precision by default.
+JSON Schema Enforcement: If you have control over the API or data schema, you can enforce that large numbers are transmitted as strings or in a format that ensures precision.
+
+Example of BigInt Handling in JSON
+Here’s a conceptual example of how you might handle large numbers as strings in JSON:
+
+json
+Copy code
+{
+  "userId": "9007199254740993",
+  "balance": "123456789012345678901234567890"
+}
+When parsing:
+
+In JavaScript, use BigInt() to convert the string back to an arbitrary-precision integer.
+In Python or other languages with built-in arbitrary-precision support, you can convert the string directly into a large integer.
+Summary
+Numbers greater than
+2
+53
+−
+1
+2
+53
+ −1 can't be precisely represented in standard JSON because of floating-point precision limits.
+To avoid precision loss for large integers in JSON, transmit them as strings and convert them back into numbers in the consuming application.
+Use libraries like BigInt in JavaScript or the built-in arbitrary-precision features in languages like Python for handling very large numbers.

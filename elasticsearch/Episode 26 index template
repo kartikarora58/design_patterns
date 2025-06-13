@@ -1,0 +1,114 @@
+An index template in Elasticsearch is a way to define settings, mappings, and aliases that apply automatically to newly created indices that match a defined naming pattern. This is particularly useful for managing multiple indices with similar configurations, such as in time-series data like logs or metrics.
+Types of Index Templates
+
+    Legacy Index Templates (Pre 7.8):
+        Apply only to indices created after the template is defined.
+        Limited to matching a single pattern.
+
+    Composable Index Templates (Introduced in 7.8):
+        More flexible and modular.
+        Support multiple components (e.g., mappings, settings, and aliases).
+        Can include versioning and priority to manage template precedence.
+
+Key Components of an Index Template
+
+    Index Patterns:
+        Specifies which indices the template applies to (e.g., logs-* for indices like logs-2023-01-01).
+
+"index_patterns": ["logs-*"]
+
+Settings:
+
+    Contains index-level configurations such as shard count, replica count, and analyzer settings.
+
+"settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 2
+}
+
+Mappings:
+
+    Defines the field types, analyzers, and other properties for documents in the index.
+
+"mappings": {
+    "properties": {
+        "timestamp": {
+            "type": "date"
+        },
+        "message": {
+            "type": "text",
+            "analyzer": "standard"
+        }
+    }
+}
+
+Aliases:
+
+    Specifies aliases for the index.
+
+    "aliases": {
+        "logs": {}
+    }
+
+Creating an Index Template
+
+Here’s how to create an index template using the Elasticsearch API:
+Legacy Template
+
+PUT _template/logs_template
+{
+  "index_patterns": ["logs-*"],
+  "settings": {
+    "number_of_shards": 3
+  },
+  "mappings": {
+    "properties": {
+      "timestamp": { "type": "date" },
+      "message": { "type": "text" }
+    }
+  },
+  "aliases": {
+    "logs": {}
+  }
+}
+
+Composable Template
+
+PUT _index_template/logs_template
+{
+  "index_patterns": ["logs-*"],
+  "priority": 1,
+  "template": {
+    "settings": {
+      "number_of_shards": 3,
+      "number_of_replicas": 1
+    },
+    "mappings": {
+      "properties": {
+        "timestamp": { "type": "date" },
+        "message": { "type": "text" }
+      }
+    },
+    "aliases": {
+      "logs": {}
+    }
+  }
+}
+
+Viewing Index Templates
+
+    For legacy templates:
+
+GET _template
+
+For composable templates:
+
+    GET _index_template
+
+Benefits of Index Templates
+
+    Consistency: Ensures all indices matching a pattern have the same configuration.
+    Automation: Reduces manual effort when creating new indices.
+    Flexibility: Composable templates allow for better organization and reuse of components.
+
+Let me know if you need help with a specific use case or configuration!

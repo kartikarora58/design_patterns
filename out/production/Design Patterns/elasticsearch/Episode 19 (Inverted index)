@@ -1,0 +1,33 @@
+An inverted index in Elasticsearch is the fundamental data structure used for efficient full-text searches. It's inspired by the concept from information retrieval and is different from traditional database indexing (such as B-trees or hash tables). An inverted index maps terms to the documents they appear in, enabling fast searches, especially for unstructured text.
+
+How it works:
+Documents and Fields: Each document in Elasticsearch consists of fields (like a JSON object). These fields can be of various types such as text, numbers, dates, etc. The inverted index is mostly concerned with text fields, where full-text search is applied.
+
+Tokenization: When a document is indexed, Elasticsearch breaks down text fields into individual terms using a process called tokenization. For example, if a document contains the text "The quick brown fox", it might tokenize this into terms like "the", "quick", "brown", and "fox".
+
+
+Term to Document Mapping: The inverted index then creates a mapping of these terms to the document(s) they appear in. For instance:
+
+"quick" -> [Doc1, Doc2]
+"fox" -> [Doc1]
+Efficiency: When a search query is executed, Elasticsearch can quickly look up the terms in the inverted index to find which documents contain the matching terms. This is why Elasticsearch is able to provide fast full-text search capabilities even over large datasets.
+
+Example:
+If you have two documents:
+
+Doc1: "The quick brown fox"
+Doc2: "The quick brown dog"
+The inverted index might look like this:
+"quick" -> [Doc1, Doc2]
+"brown" -> [Doc1, Doc2]
+"fox" -> [Doc1]
+"dog" -> [Doc2]
+When you search for "fox", Elasticsearch will directly retrieve Doc1 without scanning all documents.
+
+Key Concepts:
+Lucene: Elasticsearch uses Apache Lucene internally to create the inverted index.
+Shards: Each index in Elasticsearch is divided into shards, and each shard holds its own inverted index.
+Relevance Scoring: Elasticsearch calculates how relevant a document is to a given search query using the inverted index, utilizing algorithms like TF-IDF or BM25.
+Advantages:
+Full-text search: Inverted indexes make it possible to perform fast full-text searches.
+Efficient: Even in large datasets, Elasticsearch can quickly identify matching documents for a query by using this structure.

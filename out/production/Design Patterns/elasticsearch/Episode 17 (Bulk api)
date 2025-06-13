@@ -1,0 +1,24 @@
+update by query also use bulk api internally.
+
+We can use bulk api to perform multiple actions across multiple docs in one single requests
+actions can be -> index, create, update, delete
+
+Index -> It will create if the documents doesn't exists, otherwise will update it.
+Create -> It will give error if the document with similar id is already present
+
+API structure
+
+POST /{indexName}/bulk
+{}->action
+{}->data
+{}->action
+{}->data
+.
+.
+
+For Example
+
+POST /customers/_bulk
+{"create":{}}
+{"name":"Kartik","age":30}
+{"delete":{"_id":fji4u399}}

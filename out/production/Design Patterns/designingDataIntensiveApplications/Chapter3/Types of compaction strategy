@@ -1,0 +1,31 @@
+"Size-Tiered Compaction" (STC) is a compaction strategy used in NoSQL databases, like Cassandra, to manage how data is written and stored on disk. It helps in reducing the number of files on disk and improving read performance by merging multiple smaller files into larger ones. Here's an overview of how it works:
+
+Key Concepts of Size-Tiered Compaction:
+Write Operation:
+
+Data is initially written to memtables in memory and then flushed to disk as SSTables (Sorted String Tables) when the memtable is full.
+Compaction:
+
+STC periodically merges smaller SSTables into larger ones.
+When a certain number of similarly-sized SSTables (usually 4 or more) accumulate, they are compacted into a single larger SSTable.
+During compaction, the merged SSTable contains the latest version of the data and removes any outdated or deleted data (also known as tombstones).
+Trigger:
+
+Compaction is triggered when the number of SSTables of a similar size exceeds a threshold (typically 4).
+Compaction Process:
+
+The smaller SSTables are read, their contents are merged, and then written back as a larger SSTable.
+The original smaller SSTables are deleted after compaction.
+Advantages:
+
+Efficient for write-heavy workloads since it minimizes the number of write operations during compaction.
+Keeps disk space usage in check by removing old data during compaction.
+Disadvantages:
+
+Read performance can be impacted before compaction occurs because there may be many small SSTables that need to be merged during reads.
+Compaction can create write amplification, where data is written multiple times due to repeated merges of SSTables.
+When to Use Size-Tiered Compaction:
+Write-heavy workloads: STC works best in scenarios where there are frequent inserts and updates.
+High throughput requirements: Its performance during writes is optimal as it defers compaction until multiple SSTables are accumulated.
+Alternatives to Size-Tiered Compaction:
+Leveled Compaction Strategy (LCS): More suited for read-heavy workloads, as it tries to keep the number of SSTables to a minimum for any read query, resulting in better read performance.

@@ -1,0 +1,81 @@
+When dealing with multi-index setups in Elasticsearch, writes are typically affected in different ways depending on how the writes are managed, especially when using aliases or targeting multiple indices directly. Here’s a breakdown of how writes behave in multi-index configurations:
+1. Writes to an Alias Pointing to Multiple Indices
+
+If an alias points to multiple indices, Elasticsearch will write to all the indices that the alias refers to.
+
+    Uniform Writes: When an alias is associated with multiple indices and a write operation (like index, update, or delete) is performed on the alias, Elasticsearch writes the data to all the indices that the alias refers to.
+
+    Example: If my_alias points to index1, index2, and index3, and you perform a POST request to my_alias, the document will be written to all three indices.
+
+    POST /my_alias/_doc
+    {
+      "field": "value"
+    }
+
+    This will result in the same document being inserted into index1, index2, and index3.
+
+    Potential Use Cases: This might be useful if you want to distribute data across multiple indices for scalability but want the write logic to remain the same.
+
+    Performance Considerations: Writing to multiple indices can increase resource usage, as Elasticsearch needs to write to each index in parallel. This may affect indexing throughput if the number of indices grows significantly.
+
+2. Writes to Specific Indices
+
+If you're writing to specific indices (not an alias), the write is directed solely to the index you specify in your request. In this case, writes are not affected by multiple indices unless you change the index in each request.
+
+    Index-Specific Writes: You specify which index to write to directly.
+
+    Example:
+
+    POST /index1/_doc
+    {
+      "field": "value"
+    }
+
+    This write operation will only affect index1.
+
+    Potential Use Cases: Useful if you need to control where each document is indexed (for example, writing to different indices based on document type or time).
+
+3. Index Aliases with Routing
+
+When using aliases with a routing key, writes are directed to specific shards, based on the routing key. If the alias points to multiple indices, Elasticsearch will use the routing key to determine which index to write to, based on how the indices and their shards are set up.
+
+    Routing Control: Elasticsearch uses a routing key to map the document to a specific shard within an index. Even when writing to an alias, the routing ensures that the document goes to a consistent shard.
+
+    Example:
+
+    POST /my_alias/_doc?routing=some_routing_key
+    {
+      "field": "value"
+    }
+
+    Here, the routing key will determine which index (or shard) within that index receives the document, if the alias points to multiple indices.
+
+    Performance Considerations: Routing can improve performance by ensuring that documents with the same routing key go to the same shard, improving cache locality and reducing overhead when querying or updating the same set of documents.
+
+4. Write Conflicts in Multi-Index Scenarios
+
+When multiple indices are involved, write conflicts can occur, especially when:
+
+    Document IDs overlap between indices: If the same document ID is used in multiple indices, it can lead to conflicts, as Elasticsearch treats each index separately.
+    Out-of-order Writes: If the indices have different configurations (e.g., mappings or settings), Elasticsearch may encounter issues if trying to write to indices with incompatible configurations.
+
+5. Index Lifecycle Management (ILM) and Multi-Index Setup
+
+In scenarios where multi-index configurations are managed via Index Lifecycle Management (ILM), writes will be directed to specific indices based on the current lifecycle phase of the index.
+
+    Writes to Hot Index: In rolling index setups, writes will typically go to the "hot" index (the current active index), while older indices may only be used for searches or readonly operations.
+
+6. Rolling Indices and Multi-Index Setup
+
+In a rolling index strategy, where indices are created on a time-based schedule (e.g., daily or weekly indices), writes usually go to the newest index, while older indices may be used for searching or archiving.
+
+    Example: If you have indices like log-2024-01-01, log-2024-01-02, and log-2024-01-03, and the alias logs points to these indices, writes will be directed to the most recent index (e.g., log-2024-01-03), while searches can span across all indices.
+
+Summary:
+
+    Writes to an Alias with Multiple Indices: Data is written to all indices the alias points to.
+    Writes to Specific Indices: Data is written to the specified index.
+    Routing: Can control which index within the alias an item is written to.
+    Performance Impact: Writing to multiple indices increases load, but routing can optimize performance in specific use cases.
+
+Careful management of multi-index setups and alias configurations is necessary to ensure efficient writes and avoid potential conflicts or performance degradation.

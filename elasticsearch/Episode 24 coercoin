@@ -1,0 +1,18 @@
+In Elasticsearch, coercion refers to the automatic conversion of data types when the input data doesn't match the expected field type. Elasticsearch attempts to "coerce" the value into the correct type so that the operation can proceed without errors.
+Examples of Coercion:
+
+    String to Numeric Field:
+        If a field is defined as a long (integer) and you try to index the string "42", Elasticsearch will convert it to the numeric value 42.
+
+    Numeric to String Field:
+        If a field is defined as a keyword or text and you pass a number like 42, Elasticsearch will convert it to the string "42".
+
+    Date Coercion:
+        If a field is a date type, Elasticsearch can parse various date formats like "2023-12-04", "04-12-2023", or even timestamps like 1700000000000.
+
+    Boolean Coercion:
+        For boolean fields, Elasticsearch accepts multiple representations:
+            true/false
+            1/0
+            "true"/"false"
+            "yes"/"no"

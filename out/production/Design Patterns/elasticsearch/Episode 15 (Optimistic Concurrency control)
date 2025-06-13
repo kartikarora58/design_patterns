@@ -1,0 +1,7 @@
+How to handle optimistic concurrency control in elastic search
+
+How OCC works with _seq_no and _primary_term:
+Instead of checking just the document’s version (_version), Elasticsearch uses both _seq_no and _primary_term to ensure safe updates. This mechanism guarantees that operations are applied in the correct order and on the right primary shard, making it more reliable in distributed systems.
+
+_seq_no ensures that the operation is applied in the correct order (i.e., the document has not been updated by another operation in the meantime).
+_primary_term ensures that the operation is applied to the correct shard copy and prevents updates on stale primary shards.

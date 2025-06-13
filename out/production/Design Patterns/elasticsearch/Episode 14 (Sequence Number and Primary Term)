@@ -1,0 +1,23 @@
+What are sequence number and primary term in elastic search ?
+
+Replication group consists of 1 primary node and 2 replica node.
+
+Suppose data is in primary shard and is being replicated to other 2 replicas.
+After being replicated to Replica R1 the primary shard fails.
+Now R2 becomes the primary shard by voting mechanism.
+However, R2 doesn't contains the data.
+
+Primary term represents -> How many times the primary shard was changed.
+Sequence number represents counter for each write operation.
+
+There are two more terms global and local checkpoint
+local checkpoint is the sequence number of each node in replica group.
+whereas global checkpoint is the minimum sequence number among all the nodes in the replica group.
+
+Primary Replica1 Replica2
+x+1     x+1         x
+data    data        data
+
+because primary failed before the data was replicated to replica 2
+
+global checkpoint will be x which ensures atleast x amount of data is written to all the nodes in replica group.

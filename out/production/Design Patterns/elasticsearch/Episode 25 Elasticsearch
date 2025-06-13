@@ -1,0 +1,103 @@
+Elasticsearch provides a variety of data types to handle diverse data efficiently. These types are defined in mappings, which describe how documents are indexed and stored in Elasticsearch.
+Core Data Types
+
+    Text:
+        Used for full-text search.
+        Examples: Articles, product descriptions.
+        Analyzed by default (tokenized into terms).
+        Example: "type": "text"
+
+    Keyword:
+        Used for structured data (exact matches, aggregations, sorting).
+        Examples: Tags, email addresses.
+        Not analyzed.
+        Example: "type": "keyword"
+
+    Numeric:
+        Long: For 64-bit integers.
+        Integer: For 32-bit integers.
+        Short: For 16-bit integers.
+        Byte: For 8-bit integers.
+        Double: For 64-bit floating points.
+        Float: For 32-bit floating points.
+        Example: "type": "integer"
+
+    Date:
+        Stores date and time.
+        Supports multiple formats (ISO 8601 default).
+        Can store milliseconds since the epoch.
+        Example: "type": "date"
+
+    Boolean:
+        Stores true or false.
+        Example: "type": "boolean"
+
+    Range:
+        Stores ranges of values:
+            integer_range, float_range, long_range, double_range, date_range.
+        Example: "type": "integer_range"
+
+Complex Data Types
+
+    Object:
+        Stores JSON objects (nested key-value pairs).
+        Fields are indexed as separate entries.
+        Example:
+
+    {
+      "type": "object",
+      "properties": {
+        "field1": {"type": "text"},
+        "field2": {"type": "keyword"}
+      }
+    }
+
+Nested:
+
+    Similar to objects but keeps the relationship between nested fields intact.
+    Used for advanced querying of nested structures.
+    Example: "type": "nested"
+
+Array:
+
+    Elasticsearch supports arrays of any data type.
+    Example:
+
+        "tags": ["elasticsearch", "search", "indexing"]
+
+Specialized Data Types
+
+    Geo-point:
+        Stores latitude and longitude coordinates.
+        Example:
+
+        "location": {
+          "type": "geo_point"
+        }
+
+    Geo-shape:
+        Stores shapes like polygons, lines, etc., for spatial data.
+        Example: "type": "geo_shape"
+
+    IP:
+        Stores IPv4 or IPv6 addresses.
+        Example: "type": "ip"
+
+    Binary:
+        Stores binary data (Base64 encoded).
+        Example: "type": "binary"
+
+Runtime Fields
+
+    Allow defining fields calculated at query time.
+    Types: keyword, long, double, date, and boolean.
+    Example:
+
+    "runtime": {
+      "type": "keyword",
+      "script": {
+        "source": "doc['field'].value + '_suffix'"
+      }
+    }
+
+Understanding these data types is essential for designing efficient Elasticsearch indices and optimizing queries. Let me know if you'd like more details or examples!

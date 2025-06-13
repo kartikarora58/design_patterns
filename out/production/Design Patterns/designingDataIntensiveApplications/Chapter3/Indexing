@@ -1,0 +1,61 @@
+For database indexing b trees are used.
+B+ Trees are m array trees
+with parent have m-1 keys and m children
+at each level keys are sorted.
+         [60,000 | 80,000]
+          /           \
+[55,000 | 60,000]    [80,000 | 95,000]
+
+and if each level keys are increasing then the tree height is also adjusted.
+
+at leaf node there is an address corresponding to each key.
+
+Clustered Index.
+It determines, on the basis of which column actual data is sorted in the database.
+A clustered index determines the physical order of the data in the table. In a table with a clustered index, the rows are stored in the same order as the index, meaning the actual data is sorted by the column(s) used in the clustered index.
+
+Key Characteristics:
+One Per Table: A table can have only one clustered index because the data can be physically sorted in only one way.
+Physical Data Order: The rows in the table are stored on disk in the order of the clustered index.
+Direct Access: Since the index is integrated with the table’s storage, queries that use the clustered index can quickly access the data without having to go through a secondary lookup.
+Primary Key: In many cases, the primary key of a table is used as the clustered index because it guarantees a unique identifier for each row.
+Example:
+Suppose you have a table Orders with columns OrderID, CustomerID, and OrderDate. If you create a clustered index on OrderDate, the rows in the Orders table will be stored physically in the order of OrderDate.
+
+Use Cases:
+Range Queries: When you often query data based on a range (e.g., orders in a specific date range), a clustered index is ideal.
+Frequent Sorting: When queries often involve sorting (e.g., ORDER BY), the clustered index speeds up such queries because the data is already stored in the sorted order.
+Advantages:
+Faster Retrieval for Indexed Columns: Since the data is stored in the order of the index, accessing rows by the indexed column is fast.
+Good for Range Queries: It’s efficient for range-based queries because data is stored sequentially.
+
+In clustered index, at leaf node actual data is present
+
+Conclusion:
+Clustered Index with B+ Tree: The clustered index ensures that the data rows themselves are stored in a sorted order based on the indexed column (Salary in this case), and the B+ Tree structure helps efficiently navigate through the data.
+Leaf Nodes: In a clustered index, the leaf nodes of the B+ Tree contain the actual data rows, which are linked together for fast range queries.
+Efficient for Range Queries: The linked leaf nodes make range queries very efficient, as the database can traverse the data sequentially.
+
+
+2. Non-Clustered Index
+A non-clustered index does not affect the physical order of the data in the table. Instead, it creates a separate structure that holds the indexed column(s) and pointers (row locators) to the actual rows in the table. The table's data is stored in a heap or according to the clustered index (if one exists), and the non-clustered index provides an additional way to look up data.
+
+Key Characteristics:
+Multiple Per Table: A table can have multiple non-clustered indexes.
+Logical Ordering: The data is not physically stored in the order of the non-clustered index, but the index provides a logical ordering for efficient access.
+Index Points to Data: A non-clustered index contains the indexed columns and a pointer (usually a row ID or primary key) that tells the database where to find the actual data row.
+Separate Storage: Non-clustered indexes are stored separately from the table's data, often leading to more efficient searches but requiring an additional lookup to retrieve the actual data.
+Example:
+Consider the same Orders table. You may create a non-clustered index on CustomerID. The data in the table will not be stored in the order of CustomerID, but the non-clustered index will maintain a sorted list of CustomerID values with pointers to the actual rows in the table.
+
+Use Cases:
+Lookups on Non-Sorted Data: When you frequently query based on columns that are not part of the clustered index, a non-clustered index can speed up the search.
+Multiple Query Patterns: Since you can create multiple non-clustered indexes, you can optimize for different query patterns (e.g., searching by CustomerID, ProductID, etc.).
+Advantages:
+Multiple Indexes: You can create multiple non-clustered indexes on a table, optimizing different queries that access different columns.
+Faster Reads for Specific Columns: Non-clustered indexes can speed up read operations, particularly for columns that are frequently used in queries.
+Disadvantages:
+Additional Space: Non-clustered indexes require additional storage space since the index is stored separately from the data.
+Two Lookups: The database may need to perform two lookups: one to search the non-clustered index and another to retrieve the actual data row (unless the query can be resolved using just the index itself, which is known as a covering index).
+
+Search for difference between clustered and non clustered index
