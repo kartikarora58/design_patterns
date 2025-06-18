@@ -1,0 +1,22 @@
+   0  1  2  3  4   5
+0  0  1  2  3  4   5
+1  6  7  8  9  10  11
+2  12 13 14 15 16  17
+3  18 19 20 21 22  23
+
+if we want to write the 2d matrix in 1d array
+use below formulas
+
+if we have number
+
+i = num/c;
+j = num%c
+---------------------------------------------------------------------------
+
+if we have negative numbers and we are using right shift operatoes
+-3 >> 1 ideally it should be -1
+but it is -2
+so if negative numbers are involved always divide by 2
+
+TODO read this how to prevent this situation for now use /2
+-------------------------------------
