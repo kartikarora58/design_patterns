@@ -1,0 +1,220 @@
+Requirements
+1-1 messaging
+group messaging
+auth phone number
+idempotency
+
+Idempotency = we should prevent duplicate request, so once the message is sent from the ui clear the chat window
+
+
+Back of the envelop estimation
+1. 4 Billion total users
+2. 20% are daily active users = 4B * 0.2 = 800M
+3. 15 messages per day = 800M * 15 = 12B messages per day
+4. In reality it is 100B messages per day
+5. QPS = 100 B/ 86400(100000) = 1 million messages per second
+
+message payload
+msg id = 8 bytes
+sender id = 8 bytes
+receiver id = 8 bytes
+content = 100 characters = 200 bytes
+timestamp = 8 bytes
+Lets approx = 500 bytes
+
+100 Billion messages x 500 bytes = 50 TB per day
+Store data for 20 years = 50 TB * 365 * 20 = 365 PB of data
+
+Non Functional Requirements
+1. Message delivery
+2. Message ordering
+
+
+APIS
+1. sendMessage(senderId,receiverId,content)
+2. getRecentConversations(userId,offset,limit)
+3. readMessages(userId,conversationId(groupId/receiverId),offset,limit)
+
+For message ordering
+each message should have should contain hash of previous message
+we can sort them on the basis of time and if the hash of current message does not match the previous message then we can say that the message is out of order
+
+Sharding = we can do sharding by userId and messages of a user will be stored in their respective shards
+if it is 1-1 then we have to store messages in both the shards
+but what if it is a group messaging, then it means we have to store the messages in each group member shard which is not appropriate
+
+For group messaging we can shard on the basis of conversationId, and for 1-1 messaging we can keep it separate or it can also be seen as a conversation
+involving 2 folks
+
+now our apis will be like
+1. sendMessage(senderId,conversationId,content)
+2. readMessage(userId,conversationId,offset,limit)
+
+For showing list of conversations = One approach is we can go to each conversation shard and check if this user is part of this conversation
+but this will lead to fan-out read instead we can maintain a list of conversations for each user
+
+Our system will be both read and write heavy
+we have to sort data on the basis of timestamp
+we can use a column family database
+
+Entities involved
+1. User
+2. Conversation
+3. Message
+
+
+User
+    id = 8 bytes
+    phone number = 16 bytes
+    email = 16 bytes
+    name = 50 characters = 100 bytes
+
+Conversation
+    id
+    conversationType (group/1-1)
+    admin
+    createdAt
+
+
+conversation - user mapping
+    conversationId
+    userId
+    createdAt
+
+
+For loading the list of conversationss for a user we can store in memory
+list of conversationId and load the conversations from the db
+similarly conversation -> list of users
+
+when a request arrives for adding a user to a conversation first we will check if the user doesn't exist in the conversation
+then we can add the user to the list of users of that conversation it will be super fast
+and we can asynchronously add the user to the mapping table via kafka
+
+--------------------------------------------------------------------------------------------------------------------------------
+✅ Core Design Highlights (Correct & Practical):
+1. Scalability Estimation
+
+    ✅ 100B messages/day → ~1M QPS is accurate.
+
+    ✅ 500 bytes/msg → 365PB over 20 years — aligns with real-world scale (e.g., WhatsApp, Messenger).
+
+2. Sharding Strategy
+
+    ✅ 1-1 conversation: shard by userId (store in both sender and receiver shards).
+
+    ✅ Group messaging: shard by conversationId to avoid fan-out writes.
+
+💡 Suggestion:
+
+    To avoid storing duplicates in 1-1 messaging, treat 1-1 chats as a special case of conversations (just 2 participants). Shard by conversationId uniformly for all cases. This simplifies storage, read logic, and conversation tracking.
+
+3. Message Ordering
+
+    ✅ Using hash chaining (message contains hash of previous message) is a clever way to ensure order integrity.
+
+    Could also maintain monotonically increasing sequence numbers per conversation if you want lighter validation than hash comparison.
+
+4. Idempotency
+
+    ✅ UI sends message once, clears chat input on success.
+
+    ✅ Backend must enforce idempotency via deduplication using messageId (UUID/ULID).
+
+        Store message with a composite unique key: (senderId, conversationId, clientGeneratedMessageId).
+
+5. Conversation → User & User → Conversation Mapping
+
+    ✅ Store in-memory mapping for fast access (e.g., using Redis).
+
+    ✅ Update persistent mapping table via Kafka asynchronously = good for consistency/performance balance.
+
+6. Data Modeling (Clean and Practical)
+User
+
+- id (PK)
+- phone number (unique)
+- email
+- name
+
+Conversation
+
+- id (PK)
+- type (1-1 or group)
+- adminId
+- createdAt
+
+ConversationParticipant
+
+- conversationId
+- userId
+- joinedAt
+- PRIMARY KEY(conversationId, userId)
+
+Message
+
+- id (PK)
+- conversationId
+- senderId
+- content
+- timestamp
+- previousHash
+- sequenceNumber
+
+7. Column-Family Database
+
+    ✅ Using columnar storage like Apache Cassandra or ScyllaDB is ideal for:
+
+        Fast range queries (readMessages)
+
+        Sorting on timestamp
+
+        High write throughput
+
+📌 API Suggestions
+1. POST /messages/send
+
+{
+  "senderId": 123,
+  "conversationId": 456,
+  "clientMessageId": "uuid-abc",
+  "content": "Hey there!"
+}
+
+Backend:
+
+    Deduplicate using (senderId, conversationId, clientMessageId)
+
+    Add to conversation shard
+
+    Update last message timestamp in conversation
+
+2. GET /conversations?userId=123&limit=20&offset=0
+
+    Use Redis or distributed in-memory cache for list of conversationIds
+
+    Fetch top 20 sorted by lastMessageTimestamp
+
+3. GET /messages?conversationId=456&limit=20&offset=100
+🧠 Advanced Considerations
+
+    Delivery status: Store message delivery/read receipts in separate fast-updating store (like Redis or DynamoDB).
+
+    Backup/Cold Storage: Archive old messages using object store (e.g., S3 + Glacier).
+
+    End-to-end encryption: Requires client-side encryption, storing encrypted blobs on server.
+
+✅ Summary
+
+Your design:
+
+    Handles scale and performance well.
+
+    Covers functional and non-functional requirements properly.
+
+    Smart use of async Kafka, Redis caching, and sharded storage.
+
+    Clean and extensible entity model.
+
+Would you like a high-level architecture diagram or API contract definition in OpenAPI/Swagger style?
+
+
