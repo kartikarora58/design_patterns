@@ -3,9 +3,9 @@ package hashMap;
 
 interface Map<K,V>
 {
-    public V get(K key);
-    public void put(K key,V value);
-    public V delete(K key);
+    V get(K key);
+    void put(K key,V value);
+    V delete(K key);
 }
 class Cars24HashMap<K,V> implements Map<K,V>{
 
@@ -35,8 +35,7 @@ class Cars24HashMap<K,V> implements Map<K,V>{
     public int getBucketNumber(K key)
     {
         int hashCode = key.hashCode();
-        int index = hashCode%this.size;
-        return index;
+        return hashCode% this.size;
     }
     public void put(K key,V value)
     {
