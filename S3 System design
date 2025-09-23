@@ -1,0 +1,94 @@
+COMPLETE SYSTEM DESIGN :
+
+S3 typically has 3 types of storage :
+Block storage
+File Storage
+Object Storage
+
+Functional requirement:
+1 . Upload a file/object in S3
+
+    Download a file object from S3 .
+    Versioning of objects
+
+Non functional requirements :
+
+Should br durable 6 nines
+Should be highly available 4 nines
+Fault tolerant
+
+Capacity estimation :
+
+Assuming S3 has 100 PB of storage per year .
+
+Average file size : 1mb
+
+Total objects per year = 100*10^9/1 = 100 billion objects
+
+Object metadata space = 1KB
+Total space = 100 billion * 1 KB =100 TB of storage
+
+Let us understand components of s3
+
+Bucket - Container at which multiple objects or files are stored
+Object : Payload which stores inside the bucket . Every object contains its metadata ,uuid and payload
+
+                                           UUID    <----------Object  --> Payload
+                                                                             I
+                                                                             I
+                                                                   Metadata
+
+DB :
+
+RDBMS for metadata:
+
+Table :
+
+Bucket :
+bucket_id
+bucket_name
+time_created
+
+Object :
+uuid
+object_name,
+bucket_id
+version [time_created]
+
+// this happens inside data node
+Object mapping [This is used when we keep multiple objects under same file so to identify the object we use offset that where the object is being stored in file ]
+
+object_id
+offset
+file_name
+size
+
+APIs 👍
+
+PUT
+v1/bucket-name/object-name
+Returns UUID of the object
+GET
+v1/bucket-name/object-name
+Returns object
+
+DESIGN :
+
+Uploading flow
+
+User uploads a file . It goes to API gateway . API gateway checks with IAM service if user is authorized to upload a file . If yes , then file/object metadata goes to the metadata db and object goes to the data node for storage . Here , file gets uploaded in standalone server so lets assume the data does not required to be scaled horizontally . We will create a replication group of primary and secondary replication and spread it across A-Z for durability .
+
+Downloading flow :
+User request a file . It goes to API gateway . API gateway checks with IAM service if user is authorized to download a file . If yes , then file/object metadata goes to the metadata db and gets the uuid of the object .Here we get the object using object_mapping table and deserialize it and render back as a response
+
+How do we we store and retrieve the file or object from a data group.
+
+API -> Data routing service -> Placement service —--> Heartbeat check —> Data node [replication group]
+
+Data routing service generates the uuid of the object and ask placement service that which data node need to store the object . Placement service keeps the mapping of data node and its health and its keep virtual cluster map .Virtual cluster mapp keeps info of each data node and its replicas .
+
+Placement service uses consistent hashing for storing and retrieving the data node .
+
+How does the data get stored in replication group with high availability and durability ?
+
+Lets discuss about how doe we store the data . We can store the data in the standalone file in a server . Now assuming file capacity is 100GB hence we can store multiple object with offset in read write file and once file size reaches its threshold then we can make that file as read only . Now another empty file will process the data . Now , since this data is on the server hence we can create a replication group of that data node server where each data node host the same copy for durability . These data node does not need to be horizontally scaled as we need the file which we can pick from that data node .

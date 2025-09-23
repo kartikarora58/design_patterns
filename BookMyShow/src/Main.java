@@ -3,12 +3,41 @@ import java.util.List;
 
 public class Main {
 
+    interface Test{
+        public void check();
+    }
+
+    class Original implements Test{
+        int val;
+
+        public void setVal(int x)
+        {
+            this.val = x;
+        }
+
+        public void check(){
+
+        }
+
+
+    }
+
+
+    private Test getOb()
+    {
+        Test test = new Original();
+        ((Original)test).setVal(10);
+        return test;
+
+    }
+
     public static void main(String[] args) {
-        City city = new City(1,"Ludhiana",null);
-        Seat seat = new Seat();
-        List<Seat> seats = seat.createSeat();
-        Auditorium auditorium = new Auditorium(1,"a1",seats,null);
-        Theatre theatre = new Theatre(1,)
+
+        Main ob = new Main();
+
+        Test t = ob.getOb();
+        System.out.println("hi");
+
 
     }
 }

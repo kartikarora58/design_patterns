@@ -1,0 +1,109 @@
+create book my show where user can book tickets for a show
+it should be thread safe, that multiple users shouldn't book the same seat
+we want to make sure there is dynamic pricing for show
+after booking the ticket the user will get notification on email, phone
+system should support multiple payment strategies
+in this we will not lock the entire system, instead we will apply lock only on that show
+
+
+
+
+City
+Theatre
+Auditorium
+Seat
+Movie
+ShowSeat
+Ticket
+Address
+Payment
+User
+
+City
+    name
+    List<Theatre> theatres
+
+Theatre
+    name
+    List<Auditorium>
+    Address
+
+Auditorium
+    name
+    List<Seat> seats
+
+Seat
+    id
+    SeatType (SILVER,GOLD,PLATINUM)
+
+Movie
+    id
+    name
+    runTime
+    MovieType (action,comedy,romance)
+
+
+Show
+    id
+    movie
+    theatre
+    auditorium
+    List<ShowSeat> showSeats
+
+
+ShowSeat
+    id
+    seat
+    price
+
+
+Ticket
+    id
+    show
+    user
+    List<ShowSeat> bookedSeats
+    TicketStats (IN PROGRESS,CONFIRMED,CANCELLED)
+    totalAmount
+
+
+Payment
+    ticket
+    PaymentStatus
+    PaymentType(credit,debit,netbanking)
+
+
+
+
+GET  show/{id} this will return the list of showSeats
+
+
+
+POST show/boot
+{
+    "showId":3
+    "showSeats":[1,2,4,5,6]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

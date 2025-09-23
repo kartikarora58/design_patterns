@@ -1,0 +1,57 @@
+Requirements
+1. Design a web crawler for Search Engine Indexing.
+2. crawling 1 billion pages per month.
+3. it should crawl only HTML content. But in future can crawl images and pdfs.
+4. Store data upto 5 years.
+5. pages for duplicate content should be ignored
+
+
+Back of the Envelop Estimation
+1. Assume 1 billion web pages are downloaded every month.
+2. QPS: 1,000,000,000 / 30 days / 24 hours / 3600 seconds = ~400 pages per second.
+3. PeakQPS=2*QPS=800
+4. Assume the average web page size is 500k.
+5. 1-billion-page x 500k = 500 TB storage per month. If you are unclear about digital storage units, go through “Power of 2” section in Chapter 2 again.
+6. Assuming data are stored for five years, 500 TB * 12 months * 5 years = 30 PB. A 30 PB storage is needed to store five-year content.
+
+We cannot store this much data on a single database server. So, we need sharding.
+
+Below are the components involved
+1. Seed URL
+2. URL Frontier (a queue to store urls)
+3. HTML Downloader = fetch url from the queue (use DNS resolver to find the ip address)
+4. Content Parser
+5. Check if the content is not duplicate = For this compare hash of the content with the content in our disk
+6. Extract Links
+7. URL Filter = The URL filter excludes certain content types, file extensions, error links and URLs in “blacklisted” sites.
+8. Check if the URL is not seen = use hash table / bloom filter
+9. Then insert the url in url filter
+
+Problems
+1. For particular host, we might be hitting the url lot of time leading which could result in the dos attack. (politeness)
+2. different links under same host can have different priority, but we want to parse those first which have high priority
+3. DNS resolver takes time to resolve the ip address and it is synchronous is nature. multiple thread have to wait
+
+
+
+
+Solution
+1. Politeness
+    We have to add delay between multiple network calls.
+    so we ensure that thread is processing urls from same host
+    Means each thread should process urls of same host
+    For this bifurcation, we can use message queues
+    and urls under same host should be assigned same queue
+    For this we can maintain a mapping table. of host -> queue name (Queue Router)
+
+2. Priority
+    we can create a prioritizer which will find the priority of the link and each priority will have a queue
+    After this step, there will be step 1
+    But I think we can use max priority queue and combine both the steps
+
+3. For DNS resolver we can use cache to store the host name and the ip address and we can create the source of truth in database
+    We can periodically run a cron job that will fetch those records which have last updated more than 10 days ago
+    will retrieve the updated ip address from the dns resolver update its value in the database and invalidate the cache
+
+
+

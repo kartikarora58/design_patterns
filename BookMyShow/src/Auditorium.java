@@ -1,5 +1,6 @@
 import java.util.List;
 
+
 public class Auditorium {
     int id;
     String name;

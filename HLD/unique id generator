@@ -1,0 +1,178 @@
+# Chapter 7: Design a Unique ID Generator in Distributed Systems
+
+This document provides an in-depth explanation of Chapter 7 from Alex Xu’s *System Design Interview – An Insider’s Guide*, focusing on the design of a **Unique ID Generator** in distributed systems. It breaks down the motivation, challenges, real-world examples, and system design considerations for generating unique identifiers at scale.
+
+---
+
+## 1. Motivation
+
+In large-scale distributed systems, generating **unique identifiers (IDs)** is fundamental. IDs are required for:
+
+* Database primary keys
+* Order IDs in e-commerce
+* Ticket numbers in booking systems
+* User IDs, transaction IDs, session IDs, etc.
+
+Key requirements of such IDs:
+
+* **Uniqueness:** No collisions across the system.
+* **Scalability:** Handle millions or billions of requests per second.
+* **Low latency:** ID generation should be fast (microseconds to milliseconds).
+* **High availability:** The service must not be a single point of failure.
+* **Ordering (optional):** Some systems require IDs to be time-ordered.
+
+---
+
+## 2. Common Approaches
+
+### 2.1 UUID (Universally Unique Identifier)
+
+* **Pros:**
+
+  * No central coordination required.
+  * Easy to generate (libraries available in most languages).
+* **Cons:**
+
+  * 128-bit → long and storage heavy.
+  * Not sequential → poor for indexing.
+  * No inherent ordering.
+
+### 2.2 Database Auto-Increment IDs
+
+* Use relational databases (e.g., MySQL `AUTO_INCREMENT`).
+* **Pros:** Simple and sequential.
+* **Cons:**
+
+  * Single database instance → bottleneck.
+  * Hard to scale horizontally.
+  * Database failure → service unavailable.
+
+### 2.3 Ticket Server
+
+* Deploy a dedicated service to issue IDs.
+* **Pros:** Centralized control, flexible formats.
+* **Cons:**
+
+  * Single point of failure unless replicated.
+  * Risk of bottleneck.
+
+### 2.4 Snowflake (Twitter’s Approach)
+
+* Twitter designed **Snowflake**, a scalable unique ID generator.
+* 64-bit ID structure:
+
+  * 41 bits: Timestamp (in ms)
+  * 10 bits: Machine ID (data center + server ID)
+  * 12 bits: Sequence number (for same ms)
+  * 1 bit: Unused (sign bit)
+
+Example format:
+
+```
+| 1 bit | 41 bits timestamp | 10 bits machine id | 12 bits sequence |
+```
+
+* **Pros:**
+
+  * Compact (64-bit integer).
+  * Time-ordered.
+  * No central bottleneck.
+* **Cons:**
+
+  * Clock skew issues.
+  * Requires coordination of machine IDs.
+
+---
+
+## 3. Key Design Considerations
+
+### 3.1 Scalability
+
+* Use distributed nodes to generate IDs.
+* Partition workload using machine IDs or data center IDs.
+* Use sequence numbers to avoid collisions within the same millisecond.
+
+### 3.2 Uniqueness Guarantee
+
+* Combination of **timestamp + machine ID + sequence number** ensures uniqueness.
+* Assign machine IDs via **Zookeeper, Consul, or etcd** to avoid duplication.
+
+### 3.3 Time Synchronization
+
+* Critical for time-based ID generation.
+* Use **NTP (Network Time Protocol)** for clock synchronization.
+* Mitigate issues like clock drift and rollback.
+
+### 3.4 Availability
+
+* Deploy ID generator nodes across multiple data centers.
+* Use load balancing and failover mechanisms.
+
+### 3.5 Performance
+
+* IDs should be generated in **microseconds**.
+* Pre-allocate ID ranges (batch allocation) to reduce contention.
+
+---
+
+## 4. Example: Twitter Snowflake Workflow
+
+1. **Timestamp:** Get current time in ms.
+2. **Sequence:** If multiple IDs requested in the same ms, increment a 12-bit counter.
+3. **Machine ID:** Add unique machine identifier.
+4. **Assemble ID:** Concatenate into 64-bit integer.
+5. **Return ID:** Ensure ordering and uniqueness.
+
+Example (binary representation):
+
+```
+0000010110101010101010101010101010101 | 0011010101 | 000000000001
+```
+
+---
+
+## 5. Trade-offs Between Approaches
+
+| Approach            | Pros                       | Cons                         |
+| ------------------- | -------------------------- | ---------------------------- |
+| UUID                | Simple, decentralized      | Large size, not ordered      |
+| Auto-increment (DB) | Sequential, simple         | Bottleneck, low availability |
+| Ticket Server       | Centralized, customizable  | SPOF, scaling issues         |
+| Snowflake           | Scalable, ordered, compact | Clock sync issues            |
+
+---
+
+## 6. Real-world Use Cases
+
+* **Twitter:** Uses Snowflake.
+* **Instagram:** Used sharded database auto-increment IDs.
+* **MongoDB:** Uses ObjectId (12-byte structure with timestamp + machine ID + process ID + counter).
+* **YouTube:** Uses base-64 encoded IDs for URLs.
+
+---
+
+## 7. Improvements & Best Practices
+
+* Use **batch allocation** to reduce contention.
+* Implement **monitoring and alerting** for clock skew.
+* Store **last generated timestamp** to prevent duplication.
+* Apply **rate limiting** on ID requests.
+* Ensure **backward compatibility** during format changes.
+
+---
+
+## 8. Interview Tips
+
+* Be ready to compare different approaches (UUID vs DB vs Snowflake).
+* Address **trade-offs** explicitly.
+* Mention **failure scenarios** (e.g., clock rollback).
+* Emphasize **scalability and availability**.
+* Discuss **real-world inspirations** (Twitter Snowflake, MongoDB ObjectId).
+
+---
+
+## 9. Summary
+
+Designing a **Unique ID Generator** in distributed systems is a classic problem. While UUIDs are easy, they lack order and compactness. Database-based approaches are simple but don’t scale well. Ticket servers add flexibility but risk central bottlenecks. The **Snowflake algorithm** strikes a balance with scalability, compactness, and ordering, making it widely adopted in high-scale distributed systems.
+
+Key takeaway: A well-designed ID generator should balance **uniqueness, ordering, scalability, and fault tolerance**, while being performant and operationally reliable.

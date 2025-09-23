@@ -75,7 +75,7 @@ public class MinMaxSettleStrategy implements SettleStrategy{
             // both the queues are empty
             // every transaction we can maintain a transaction object
             // who is borrower and who is lender and how much will be the transaction amount
-            transactionResponseList.add(new TransactionResponse(borrow.userName,lend.userName,amount));
+            transactionResponseList.add(new TransactionResponse(borrow.userName,lend.userName,borrow.amount));
             if(amount<0)
                 borrower.add(new Pair(lend.userName,amount));
             else

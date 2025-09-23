@@ -1,0 +1,175 @@
+# Chapter 8 — Design a URL Shortener (Book-based Summary)
+
+This document follows the structure and depth of Alex Xu’s *System Design Interview* book, Chapter 8, focusing specifically on designing a URL shortener.
+
+---
+
+## 1. Requirements Clarification
+
+### Functional Requirements
+
+1. Shorten a long URL into a shorter alias.
+2. Redirect short URL requests to the original long URL.
+3. Support custom short aliases if provided.
+4. Links should not change once created.
+
+### Non-Functional Requirements
+
+1. The system should be highly available.
+2. The redirection should have very low latency.
+3. The short links should be unique.
+4. Handle massive read (redirection) traffic.
+
+---
+
+## 2. Estimation & Constraints
+
+* Assume system needs to handle **hundreds of millions of URLs**.
+* Heavy read traffic vs relatively lighter write traffic (100:1 ratio typical).
+* Storage: if average URL is 500 bytes and 100M URLs are stored → ~50 GB data (manageable with modern databases).
+* Short URL format: use a **6-character string** (Base62 encoding → 62^6 ≈ 56.8B unique URLs).
+
+---
+
+## 3. High-Level Design
+
+Components:
+
+* **Application servers**: handle API requests (shorten/redirect).
+* **Database**: store mapping of short code → original URL.
+* **Cache**: for speeding up redirection (Redis/Memcached).
+* **Key generation service**: ensure uniqueness of short codes.
+
+Workflow:
+
+1. User submits long URL.
+2. Service generates short key.
+3. Mapping stored in DB.
+4. On access, user visits short URL → service looks up long URL (cache → DB fallback) → redirects.
+
+### High-Level Architecture Diagram (Textual)
+
+```
+        +-------------+         +---------------+        +------------+
+        |   Clients   | <----> |  Load Balancer | <----> | App Server |
+        +-------------+         +---------------+        +------------+
+                                                        /            \
+                                                +------+              +------+
+                                                |  Cache (Redis)     |  DB   |
+                                                +--------------------+-------+
+```
+
+---
+
+## 4. Key Generation
+
+### Options
+
+1. **Hashing the URL** (MD5/SHA-1, then Base62 encode a portion).
+
+   * Pros: Same long URL maps to same short code.
+   * Cons: Collision possible, need conflict resolution.
+   * **Example**:
+
+     * Long URL: `https://example.com/products?id=123`
+     * MD5: `fa7b2c9e2b7a82d3e9a9f7e1f06db12a`
+     * Take first 8 hex chars: `fa7b2c9e`
+     * Convert to Base62: `Lk9pQ2`
+     * Short URL: `sho.rt/Lk9pQ2`
+
+2. **Auto-increment ID + Base62 encoding**
+
+   * Pros: Simple, guaranteed unique.
+   * Cons: Predictable, centralized sequence may become bottleneck.
+   * **Example**:
+
+     * Row inserted with ID = 125000.
+     * Base62(125000) = `W7e`
+     * Short URL: `sho.rt/W7e`
+
+3. **Random string generation**
+
+   * Pros: Simple, distributed.
+   * Cons: Needs collision check, retry on conflict.
+   * **Example**:
+
+     * Generate random 6-char Base62 string → `aZ3k9X`
+     * Check DB for existence.
+     * If free, assign short URL: `sho.rt/aZ3k9X`
+
+Book’s preference: **Auto-increment ID + Base62** because it’s efficient, unique, and collision-free.
+
+---
+
+## 5. Database Design
+
+**URL Mapping Table**
+
+| Column     | Type     |
+| ---------- | -------- |
+| short_key  | VARCHAR  |
+| long_url   | TEXT     |
+| created_at | DATETIME |
+
+Indexes:
+
+* `short_key` as primary key (fast lookup).
+
+---
+
+## 6. Redirection Flow (Read Path)
+
+* Most traffic is reads.
+* Use **cache** to store hot mappings (short → long).
+* Flow: CDN/Cache → DB.
+* Cache miss → DB lookup → populate cache.
+
+### Redirection Flow Diagram
+
+```
+User → CDN/Edge → Cache → Database → Long URL
+          |          |       |
+          |   (hit)  | (miss)|
+          +----------+-------+
+```
+
+---
+
+## 7. Scalability Considerations
+
+* **Database sharding**: Partition data by short key.
+* **Replication**: Master for writes, replicas for reads.
+* **Cache layer**: Redis cluster for hot keys.
+* **CDN**: Cache redirects close to users.
+* **Key generator scalability**: Allocate ID ranges to different servers.
+
+---
+
+## 8. Reliability & Availability
+
+* Redirect service must be highly available.
+* Use replication, failover, multi-data center deployment.
+* Cache should be resilient (Redis with clustering).
+
+---
+
+## 9. Additional Features
+
+* **Link expiration**: support TTL.
+* **Custom aliases**: users can specify alias.
+* **Analytics**: track clicks, referrer, geo.
+* **Security**: block malicious/unsafe URLs.
+
+---
+
+## 10. Summary
+
+* URL shortener design emphasizes **unique ID generation** and **read scalability**.
+* Auto-increment ID + Base62 is recommended.
+* Cache + DB combo ensures performance.
+* Scalability through sharding, replication, and CDN.
+* Reliability ensured by redundancy and failover strategies.
+
+---
+
+**End of Chapter 8 Summary (Book-based)**

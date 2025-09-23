@@ -1,0 +1,178 @@
+# Notification System Design Document
+
+## 1. Overview
+
+We are designing a high-scale notification system that can deliver up to **2 billion notifications daily**, across multiple channels (e.g., email, SMS). The system supports:
+
+* Multiple channels per user
+* Notification prioritization (LOW, REGULAR, HIGH)
+* User-level enablement/disablement of channels
+* Per-user ordered delivery
+* Idempotent delivery with retry logic
+* Enforcement of a 24-hour per-user delivery cap
+* Scalable sharding on user ID
+
+---
+
+## 2. Key Entities & Data Model
+
+### 2.1. `user_channel`
+
+Tracks user’s contact points and preferences.
+
+| Column         | Type      | Description                              |
+| -------------- | --------- | ---------------------------------------- |
+| `id`           | UUID (PK) | Unique ID for the user-channel record    |
+| `user_id`      | UUID      | ID of the user                           |
+| `channel_type` | TEXT      | Type of channel (EMAIL, SMS, etc.)       |
+| `channel_id`   | TEXT      | The actual email address or phone number |
+| `is_enabled`   | BOOLEAN   | Whether this channel is active           |
+| `created_at`   | TIMESTAMP | Record creation time                     |
+| `updated_at`   | TIMESTAMP | Record last update time                  |
+
+### 2.2. `notification`
+
+Represents a logical notification to be sent to a user.
+
+| Column       | Type      | Description                              |
+| ------------ | --------- | ---------------------------------------- |
+| `uuid`       | UUID (PK) | Notification ID                          |
+| `user_id`    | UUID      | ID of the user to send to                |
+| `payload`    | JSONB     | Notification data (title, message, etc.) |
+| `priority`   | TEXT      | LOW, REGULAR, HIGH                       |
+| `created_at` | TIMESTAMP | Notification creation time               |
+
+### 2.3. `notification_channel_log`
+
+Tracks per-channel delivery attempts and retry state.
+Stored in **ScyllaDB**, sharded by `user_id`.
+
+| Column                | Type      | Description                    |
+| --------------------- | --------- | ------------------------------ |
+| `id`                  | UUID (PK) | Unique log entry               |
+| `user_id`             | UUID      | ID of the user                 |
+| `user_channel_id`     | UUID      | FK to user\_channel            |
+| `notification_id`     | UUID      | FK to notification             |
+| `status`              | TEXT      | SENT, DEFERRED, FAILED         |
+| `scheduled_sent_time` | TIMESTAMP | When it is eligible to be sent |
+| `sent_time`           | TIMESTAMP | Actual send time               |
+| `retry`               | INT       | Retry attempt count            |
+
+### 2.4. `deferred_notification_index` (Optional for scheduling)
+
+Used to track deferred notifications centrally.
+
+| Column            | Type      | Description               |
+| ----------------- | --------- | ------------------------- |
+| `scheduled_time`  | TIMESTAMP | When to retry             |
+| `user_id`         | UUID      | For lookup                |
+| `notification_id` | UUID      | FK to notification        |
+| `user_channel_id` | UUID      | FK to user\_channel       |
+| `status`          | TEXT      | PENDING, RETRIED, EXPIRED |
+
+---
+
+## 3. Functional Requirements Mapping
+
+| Requirement                    | Fulfilled By                                 |
+| ------------------------------ | -------------------------------------------- |
+| Multiple channels per user     | `user_channel`                               |
+| Enable/disable channels        | `is_enabled`                                 |
+| Priority handling              | `notification.priority` + priority queues    |
+| Idempotency                    | Combination of `notification_id` + log check |
+| Retry mechanism                | `retry` + scheduled retry window             |
+| Per-user message ordering      | Use of ordered queues + time-based delivery  |
+| 24-hour rate limit enforcement | Redis counters with TTL or PostgreSQL track  |
+
+---
+
+## 4. High-Level Architecture
+
+### Components
+
+* **API Layer**: Accepts notification requests
+* **Dispatcher**: Fetches enabled channels, enqueues per channel
+* **Kafka Queue**: Partitioned by user ID and priority
+* **Worker Pool**: Channel-specific consumers
+* **Rate Limiter**: Enforces 24-hour user cap (via Redis)
+* **Retry Processor**: Picks DEFERRED logs and retries them
+* **Scheduler**: Triggers retries for due deferred notifications
+* **Log Store**: ScyllaDB for high-throughput delivery logs
+
+---
+
+## 5. Kafka Queuing Strategy
+
+* 3 priority queues: HIGH, REGULAR, LOW
+* All queues partitioned by `user_id` to preserve order
+* Consumers per priority, auto-scaled by throughput
+
+---
+
+## 6. Rate Limiting (24-hour window)
+
+* Redis key: `notif_count:<user_id>`
+* TTL: 86400 seconds
+* TTL is set **when the first notification for the user is sent**
+* Each successful send increments the counter
+* Before sending, worker checks the counter
+* If count >= limit, defer notification and retry after TTL expiry
+
+---
+
+## 7. Idempotency
+
+* Before sending, check if `notification_id` + `user_channel_id` exists in Scylla with status SENT
+* If yes, skip
+* If no, send and log
+
+---
+
+## 8. Retry + Deferral
+
+* If rate limit exceeded: insert log with status = DEFERRED, scheduledSentTime = next retry
+* Scheduler job scans `deferred_notification_index` for due retries
+* Retry logic includes exponential backoff
+
+---
+
+## 9. Sharding Strategy
+
+* ScyllaDB is sharded by `user_id` to ensure horizontal scalability
+* Kafka partitions also keyed by `user_id` to preserve per-user order
+
+---
+
+## 10. Monitoring & Alerting
+
+* Metrics: retry rate, send failures, delivery latency
+* Alerts: backlog per queue, dead-letter queues, rate-limit errors
+
+---
+
+## 11. Future Enhancements
+
+* Per-channel template rendering
+* User-specific quiet hours
+* Multilingual notifications
+* A/B testing on notification formats
+
+---
+
+## 12. ER Diagram (Simplified)
+
+```
+user_channel (RDS)
+   |--< notification_channel_log (Scylla)
+   ^
+   |
+notification (RDS)
+```
+
+* Optional: deferred\_notification\_index (for centralized scheduling)
+
+---
+
+## Conclusion
+
+This design is optimized for **high throughput**, **per-user ordered delivery**, **multi-channel routing**, and **rate-limited resilience**. With Kafka + Scylla + RDS + Redis, the system can horizontally scale to handle billions of messages daily while enforcing reliability, idempotency, and delivery guarantees.

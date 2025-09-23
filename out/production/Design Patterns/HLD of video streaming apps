@@ -1,0 +1,220 @@
+**High-Level System Design: YouTube-like Video Streaming Platform**
+
+---
+
+## **1. Requirements**
+
+### **Functional Requirements:**
+
+* Users can upload videos.
+* Users can stream videos on-demand.
+* Adaptive bitrate streaming (based on user bandwidth).
+* Users can search and view metadata (title, uploader, etc.).
+* Users can like, comment, share videos.
+* Video view count tracking.
+
+### **Non-Functional Requirements:**
+
+* Highly available and horizontally scalable.
+* Low latency streaming.
+* Cost-effective storage.
+* Strong consistency for metadata; eventual consistency for analytics.
+
+---
+
+## **2. Assumptions and Estimations**
+
+* **DAUs**: 100 million
+* **Videos watched per day/user**: 5 → 500M views/day
+* **Uploads/day**: 1 million (1 in 100 users)
+* **Average video size**: 100MB
+* **Storage requirement/day**: 100TB
+* **Total storage/year** (with 3x replication): \~110PB
+* **Data egress/day** (video viewing): 500M \* 100MB = 50PB/day
+
+---
+
+## **3. High-Level Components**
+
+### 3.1 **Client Layer**
+
+* Web/Mobile App
+* Upload API
+* Video player (HLS/DASH support)
+
+### 3.2 **API Gateway**
+
+* Authentication (OAuth2/JWT)
+* Rate limiting, logging, monitoring
+
+### 3.3 **Upload Service**
+
+* Accepts video files and metadata
+* Stores raw video in blob storage (S3/GCS)
+* Pushes job to transcoding queue (Kafka/SQS) using `video_id` as partition key for even distribution and ordering
+
+### 3.4 **Transcoding Service**
+
+* Consumes job from Kafka/SQS
+* Downloads full raw video from blob storage
+* Transcodes video into multiple bitrates (144p, 360p, 720p, 1080p)
+* During transcoding, breaks video into 2-10s segments using HLS/DASH format
+* Stores transcoded segments and manifest files (`.m3u8` or `.mpd`) in object storage
+
+### 3.5 **Metadata Service**
+
+* Stores metadata: video ID, uploader, title, duration, renditions
+* Indexes for search, filter, sorting
+* Backed by sharded PostgreSQL/Cassandra
+
+### 3.6 **CDN (Content Delivery Network)**
+
+* Edge caching and delivery (Cloudflare, Akamai, etc.)
+* Serves `.m3u8` manifest and video segments
+
+### 3.7 **Streaming Service**
+
+* Generates manifest files for video player (HLS/DASH)
+* Handles user bandwidth detection and quality switching
+
+### 3.8 **Analytics Service**
+
+* Tracks views, likes, watch time, etc.
+* Event-driven architecture with Kafka + Flink/Spark
+* Batched writes to analytics DB (e.g., ClickHouse, BigQuery)
+
+---
+
+## **4. Sharding Strategy**
+
+### **Object Storage (Videos)**
+
+* Shard path: `/videos/{shard_id}/{video_id}/{quality}/segment.ts`
+* `shard_id = hash(video_id) % N`
+* Backed by scalable object store (e.g., S3, HDFS, GCS)
+
+### **Metadata DB**
+
+* Shard by `video_id` or `uploader_id`
+* Use consistent hashing for even distribution
+
+### **Transcoding Jobs**
+
+* Kafka topic partitioned by `video_id`
+* Each worker reads from a set of partitions
+
+### **Analytics and Counters**
+
+* Sharded Redis or Cassandra for high-frequency counters
+* Batched aggregation for long-term analytics
+
+---
+
+## **5. Data Flow (Upload to Playback)**
+
+### **Upload Flow:**
+
+1. User uploads video via UI
+2. Upload Service stores raw file in blob storage
+3. Pushes job to Transcoding queue (Kafka/SQS)
+4. Transcoding Service consumes job:
+
+   * Downloads full raw video
+   * Transcodes to multiple renditions
+   * Segments each rendition (e.g., into 4s chunks)
+   * Generates and stores manifest + segments in blob storage
+5. Metadata Service stores video info and available renditions
+
+### **Playback Flow:**
+
+1. User requests video page
+2. Metadata Service fetches video info + manifest URL
+3. Player fetches manifest file from CDN
+4. Player requests appropriate chunks (based on bandwidth)
+5. CDN serves cached segments or pulls from blob store
+
+---
+
+## **6. Adaptive Bitrate Streaming (ABR)**
+
+### **Formats:**
+
+* HLS (HTTP Live Streaming)
+* MPEG-DASH
+
+### **Structure:**
+
+* Video is split into small chunks (2-10s)
+* Separate renditions per resolution/bitrate
+* Manifest (`.m3u8`/`.mpd`) defines available renditions
+* Player chooses segment based on available bandwidth
+
+### **Chunking Process:**
+
+* Transcoding is applied to the **entire uploaded video**
+* FFmpeg (or similar) outputs multiple renditions
+* Each rendition is **split into chunks** during transcoding using options like `-f hls` or `-f dash`
+* Chunks and manifest are stored in blob storage (e.g., `/videos/{video_id}/720p/segment1.ts`)
+
+---
+
+## **7. Scalability & Availability**
+
+* Stateless services behind load balancers
+* Use distributed, partition-tolerant storage systems
+* CDN reduces latency and load on origin
+* Kafka decouples ingestion and processing
+* Use replication, retries, backoffs for fault tolerance
+
+---
+
+## **8. Optional Enhancements**
+
+* Thumbnail generation
+* Commenting & social features
+* Recommendation engine
+* AB testing platform
+* Pre-upload deduplication using perceptual hashing
+
+---
+
+## **9. Technologies Used (Sample Stack)**
+
+| Layer       | Tech Stack                           |
+| ----------- | ------------------------------------ |
+| API Gateway | NGINX, Kong, AWS API Gateway         |
+| Upload      | Java/Spring, Multipart uploads       |
+| Transcoding | FFmpeg, AWS MediaConvert, Kubernetes |
+| Storage     | Amazon S3, GCS, HDFS                 |
+| Metadata    | PostgreSQL, Cassandra, Elasticsearch |
+| Queue       | Kafka, AWS SQS                       |
+| CDN         | Cloudflare, Akamai, AWS CloudFront   |
+| Analytics   | Kafka + Spark, Flink, ClickHouse     |
+| Player      | hls.js, dash.js, ExoPlayer, Video.js |
+
+---
+
+## **10. Interview Talking Points**
+
+* Justify ABR using bandwidth variability
+* Describe how CDN caches reduce latency
+* Talk about separation of storage and compute (blob + DB)
+* Explain sharding strategies per component
+* Emphasize use of async processing via Kafka/SQS
+* Address scaling transcoding as independent workers
+* Discuss eventual consistency for analytics
+* Explain why transcoding is done on whole video and chunking happens during output phase
+
+---
+
+This design balances scalability, fault tolerance, and cost—ideal for interview-level discussion and whiteboard sessions.
+
+
+LIVE STREAMING IS PENDING WILL DO IT LATER
+
+
+At the end you can say below are the steps
+[User Upload to S3] → [Transcode] → [Generate Manifest] → [Thumbnail Generation] → [Publish Metadata]
+we can go for an event driven architecture above
+where each event is dependent on previous event and are connected through kafka
+we can say it is behaving in a similar way to Directed Acylic graph

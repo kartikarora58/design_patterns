@@ -175,7 +175,7 @@ Update this count transactionally or asynchronously on like/unlike.
 
 TODO: How to store the media efficiently
 TODO: when a user is followed by someone, or get the post/comment liked or got a comment on the post/comment then the author
-TODO:should be notified.
+TODO: should be notified.
 TODO: Rate limiting on post creaion
 TODO: One to one messaging between the users
 
