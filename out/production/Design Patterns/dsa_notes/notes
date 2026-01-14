@@ -19,4 +19,58 @@ but it is -2
 so if negative numbers are involved always divide by 2
 
 TODO read this how to prevent this situation for now use /2
--------------------------------------
+-------------------------------------------------------
+Any number n that can be written as ax + by (where x, y ≥ 0) is said to be representable by denominations a and b.
+
+There are finite number of integers that cannot be written as ax + by
+
+"It can be seen that all items greater than primeOne * primeTwo can always be bought"
+---------------------------------------------------------------------------------------
+
+In graph if it is asked how many times the node is visited
+then its frequency will be nodeFreq = nodeFreq + parentFreq
+because the number of times a node is visited is equal to the number of times its parent is visited
+
+-----------------------------------------------------------------------------------------------------
+if there is a array and we have to compute the left and right max of that array
+but in such a way that if a value is at index 0 and we are checking it for index 4
+then we will not directly take the 0 index value we will take arr[0] + Math.abs(0-4)
+----------------------------------------------------------------------------------------------
+If we have to find the maximum sum subarray one approach is kadane's algo
+another approach is, if we keep track of minPrefixSum and from the currentSum
+we subtract the minPrefixSum, we will get the maximum sum subarray
+---------------------------------------------------------------------------------------------
+If we have to find the maximum sum ending at a particular index,
+then we will have to take the max of currentElement and maxSumEndingAtIndex-1 + currentElement
+-----------------------------------------------------------------------
+if we have to keep track of maximum, second maximum etc and same as of minimum
+use monotonic queue https://leetcode.com/problems/continuous-subarrays/description/?envType=company&envId=amazon&favoriteSlug=amazon-all
+https://leetcode.com/problems/longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit/?envType=company&envId=amazon&favoriteSlug=amazon-all
+------------------------------------------------------------------------
+try to use priority queue instead of treemap
+because internally priority queue uses array
+------------------------------------------------
+ * Hash(s) = (s[0] * b^{k-1} + s[1] * b^{k-2} + ... + s[k-1] * b^0) % mod
+
+Common base values**:
+ *     - 31 → Ideal for lowercase letters ('a' to 'z')
+ *     - 53 → Covers both lowercase and uppercase ('A' to 'Z', 'a' to 'z')
+ *     - 101 or 256 → Useful for full ASCII character range
+ *     - Random prime in [100, 1000] → For stronger collision resistance
+----------------------------------------------------------
+when wokring on area of rectangle problem or count of rectangle problem
+in a diagonal if either row of 2 points is same or column of two points is same
+then skip because are horizontal and vertical line and they will never form a rectangle
+--------------------------------------------------------------------------------------
+Range of byte:    -128 to 127
+Range of short:   -32768 to 32767
+Range of int:     -2147483648 to 2147483647
+Range of long:    -9223372036854775808 to 9223372036854775807
+For every data type positive value will end at 7 and negative value at 8
+--------------------------------------------------------------------------------------
+sudoku in order to find the boxNumber we can use row/3 * 3 + col/3
+--------------------------------------------------------------------------------------
+By applying Brian Kernighan's algorithm, we basically turn off the bits that lie on the right side of the common prefix, from the ending number n.
+The idea is that for a given range [m,n] (i.e. m<n), we could iteratively apply the trick on the number n to turn off its rightmost bit of one until it becomes less or equal than the beginning of the range (m), which we denote as n′. Finally, we return n as the final result, which contains the common prefix.
+--------------------------------------------------------------------------------------
+

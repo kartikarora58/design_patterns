@@ -1,0 +1,124 @@
+use web sockets(persistent connections)
+user online and offline status and last seen
+delivered and read receipts (can avoid for group chat)
+users are spread globally, so the users can be conncted to different chat servers
+
+Chat Server Architecture Without Redis-Based Mapping (Per-User Queue Model)
+
+📅 Overview
+
+when a user logs in, they are connected to the chat server (websocket connection)
+first request goes to the char server and internally the conversation server(http request) to fetch the data
+message ordering is really important.
+messaging service add sequence number to each message and store the hash of the previous message in the message
+will make sure that the message is in order.
+but messaging service can be scaled horizontally, so we can do consistent hashing
+so that messaging belonging to same conversation will go the same server
+
+📝 Message Flow
+
+1. User A sends a message to User B
+
+User A is connected to Chat Server 1
+
+Chat Server 1 publishes the message to queue:userB
+
+{
+  "message_id": "msg123",
+  "sender_id": "userA",
+  "recipient_id": "userB",
+  "timestamp": "2025-06-29T12:00:00Z",
+  "content": "Hello!"
+}
+
+2. User B is connected to Chat Server 2
+
+Chat Server 2 is listening to queue:userB
+
+It picks up the message and sends it over WebSocket to User B
+
+3. User B sends delivery/read ACKs
+
+Chat Server 2 updates DB via Message Service API (optional)
+
+Publishes ACK event to queue:userA if sender wants delivery status
+
+🚚 Chat Server Behavior
+
+On WebSocket Connect
+
+Extract user ID and device ID
+
+Start consuming from queue:userId[:deviceId]
+
+On WebSocket Disconnect
+
+Stop consuming from the queue
+
+Clean up local in-memory session map
+
+On Receiving a Message from Queue
+
+Lookup active WebSocket session
+
+If connected, send message
+
+
+📊 Login & Sync Flow
+
+Step-by-step
+
+Client establishes WebSocket connection
+
+Client sends WebSocket command:
+
+{ "type": "GET_CONVERSATIONS" }
+
+Chat Server makes HTTP call to ConversationService:
+
+GET /users/userA/conversations
+
+Response is pushed back to client over WebSocket:
+
+{
+  "type": "CONVERSATIONS_LIST",
+  "data": [ ... ]
+}
+
+Client selects a conversation → sends:
+
+{ "type": "GET_MESSAGES", "conversation_id": "conv123" }
+
+Chat Server calls MessageService:
+
+GET /conversations/conv123/messages?limit=50
+
+Chat Server delivers history back over WebSocket
+
+📊 Benefits
+
+Feature
+
+Benefit
+
+❌ No Redis mapping
+
+Less moving parts, no single point of failure
+
+✅ Scalable
+
+Just add chat servers; users bind to any server
+
+✅ Fault-tolerant
+
+Message queue acts as buffer when user/server is down
+
+✅ Clean multi-device
+
+Separate queues for user:device1, user:device2
+
+✅ Clean separation
+
+Chat Server does not deal with database directly
+
+

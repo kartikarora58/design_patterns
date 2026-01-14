@@ -1,0 +1,194 @@
+# Instagram System Design
+
+## ✅ Requirements
+
+1. Store/Get Posts
+2. Like + Comment on Posts
+
+   * Comments can be nested (reply to a comment)
+   * Likes can be on both posts and comments
+3. Follow / Unfollow
+4. Load News Feed
+5. Eventual consistency when a user creates a post (followers eventually see it)
+
+---
+
+## 🧱 Data Models
+
+### Post
+
+```
+Post (
+    id UUID,
+    user_id INT,
+    image_url TEXT,
+    caption TEXT,
+    timestamp TIMESTAMP,
+    is_deleted BOOLEAN
+)
+```
+
+### Like
+
+```
+Like (
+    id UUID,
+    user_id INT,
+    entity_id UUID,
+    entity_type ENUM('POST', 'COMMENT'),
+    timestamp TIMESTAMP,
+    is_deleted BOOLEAN
+)
+```
+
+### Comment
+
+```
+Comment (
+    id UUID,
+    user_id INT,
+    entity_id UUID,
+    entity_type ENUM('POST', 'COMMENT'),
+    text TEXT,
+    timestamp TIMESTAMP,
+    is_deleted BOOLEAN
+)
+```
+
+### Relation (Follow Graph)
+
+```
+Relation (
+    follower_id INT,
+    followee_id INT,
+    timestamp TIMESTAMP
+)
+```
+
+---
+
+## 📌 Optimization: Like Count
+
+Querying likes using:
+
+```sql
+SELECT COUNT(*) FROM Like WHERE entity_type = 'POST' AND entity_id = ?
+```
+
+can be slow at scale.
+
+### Better Approach:
+
+Introduce an EntityLikeCount table:
+
+```
+EntityLikeCount (
+    entity_id UUID,
+    entity_type ENUM('POST', 'COMMENT'),
+    like_count INT
+)
+```
+
+Update this count transactionally or asynchronously on like/unlike.
+
+---
+
+## 🛠️ Services
+
+* UserService – User profile, auth
+* FollowService – Manages follow graph
+* PostService – Handles posts, likes, comments
+* FeedService – Builds and serves user feeds
+
+---
+
+## 🔄 News Feed Generation
+
+### When a user logs in:
+
+1. Get followees using FollowService
+2. Fetch their recent posts using PostService
+3. Compose and serve the feed
+4. Cache `<user_id, post_id>` to avoid recomputation
+
+---
+
+## ⚡ Fanout Strategy (Post Creation)
+
+### When User 'Kartik' creates a post:
+
+* Fetch all followers
+* For each follower, add post to their feed cache
+
+### Problem:
+
+* Celebrity case: millions of followers → slow
+
+### Solution:
+
+* Send message to Kafka (`post_created` topic)
+* Consumers:
+
+  * Fetch follower IDs
+  * Update cache for **active** followers only
+
+---
+
+## 📥 Caching Strategy
+
+* Per-user feed cache: `feed:user_id → [post_ids]`
+* TTL-based eviction
+* Only cache recently active users
+
+---
+
+## 🧪 Final Flow Summary
+
+### 1. User Logs In
+
+* Get followees
+* Load their posts
+* Merge + serve feed
+
+### 2. User Creates Post
+
+* Save post to DB
+* Emit `post_created` event to Kafka
+* Consumers update active followers' feed cache
+
+### 3. Likes/Comments
+
+* Insert Like/Comment row
+* Increment count in EntityLikeCount
+* Optionally notify users
+
+---
+
+## 📈 Summary of Trade-offs
+
+| Option          | Pros                 | Cons                      |
+| --------------- | -------------------- | ------------------------- |
+| Fanout on Write | Fast read, real-time | Slow write, hot key issue |
+| Fanout on Read  | Scales well on write | Slow reads, high latency  |
+| Hybrid          | Balanced performance | Higher system complexity  |
+
+
+TODO: How to store the media efficiently
+TODO: when a user is followed by someone, or get the post/comment liked or got a comment on the post/comment then the author
+TODO:should be notified.
+TODO: Rate limiting on post creaion
+TODO: One to one messaging between the users
+
+Let me give you an example of how like will work
+POST = /add_like
+{
+    entity_id : 1
+    entity_type : comment
+    token : bearer
+}
+
+increase the like count in the specific entity cache
+emit this emit the event (entity_type,entity_id,user) to create_like topic
+this will create the entry in the likes table and will also create an entry in to the entity_like_count table (although optional)
+if the redis fails, we can reconstruct the cache from
+

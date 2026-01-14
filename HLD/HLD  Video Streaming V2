@@ -1,0 +1,109 @@
+1. Functional Requirement
+Users can upload a video
+Users can stream a video
+
+2. Non Functional Requirements
+    availability>consistency
+    adaptive bit rate streaming (adjust quality according to the)
+    low latency
+    large files
+    resumable uploads
+    Multi device support
+
+Lets now identify the identities involved
+1. User
+2. Video
+3. VideoMetaData
+
+MetaData
+    userId
+    videoId
+    title
+    description
+    manifest file url.
+
+count of meta data will be quite huge, so will store this table in cassandra
+
+
+initial flow will be to upload the raw file to the blob storage
+then transcode it into different containers (mp4,mkv) to support multiple devices.
+containers contains the video, audio and subtitle of the file.
+will transcode and save the file in the s3 blob storage.
+and s3 will give an Etag, which will be confirm the uploadation of file
+and update its status in the db with the url
+
+the file is uploaded and now if we want to stream the video, it will start downloading
+the whole file which is not streaming.
+
+
+so before transcoding the file, we will break the file into segments
+and will transcode each segment
+
+while streaming we will download one segment and while that segment is being played
+at the backend, another segments will be downloaded and will be available for stream
+
+Now we want adaptive bit rate streaming, means based on the internet connection speed
+we should be able to stream low quality segments so that there is no buffering.
+
+
+so we will use a codec to compress videos to different formats
+
+so it will create a manifest file like this
+
+Manifest
+	mp4
+		1080p
+			30 (s3)
+			60 (s3)
+			90 (s3)
+		360p
+			30 (s3)
+			60 (s3)
+			90 (s3)
+	mk4
+		1080p
+			30 (s3)
+			60 (s3)
+			90 (s3)
+		360p
+			30 (s3)
+			60 (s3)
+			90 (s3)
+
+this manifest file will be store in s3 and this file url will be stored in db metadata.
+
+
+/video?id=3&format=mkv&offset=0&resoultion=360p
+/video?id=3&format=mkv&offset=30&resoultion=360p
+/video?id=3&format=mkv&offset=60&resoution=1080p
+/video?id=3&format=mkv&offset=60&resoution=1080p
+
+Now the video file to be uploaded can be quite large, so will use pre signed urls to upload the file directly to s3
+for this we will break the file into chunks
+then we will generate pre signed urls for each chunk
+and each chunk entry will be created in the metadata db
+we can identify the chunk using the hash of that chunk
+
+metadata
+    userId
+    videoId
+    title
+    description
+    manifest file url.
+    chunks[]:[
+        {
+            "hash":"54tgth",
+            "isUploaded" true/false
+        },
+        {
+            "hash":"54tgth",
+            "isUploaded" true/false
+        }
+    ]
+
+like this we can keep the track of the chunks that are uploaded.
+
+
+
+
+
