@@ -1,0 +1,153 @@
+Questions and Answers
+1. Near by 5 miles
+2. app can have 1 billion users
+3. we have to store location history for different purposes like machine learning
+4. for a friend active/inactive we will keep a ttl of 10 mins and if location isn't received with in 10 mins we will mark them as
+inactive
+
+
+Functional Requirement
+Users should be able to see nearby friends on their mobile apps. Each entry in the
+nearby friend list has a distance and a timestamp indicating when the distance was
+last updated.
+• Nearby friend lists should be updated every few seconds.
+
+Non functional Requirements
+1. Low Latency
+2. Reliability
+3. eventual consistency
+
+Back of the envelop estimation
+location updates every 30 seconds.
+100 million users use near by daily (10% of 1 billion uses near by)
+assume 10 million are concurrent users
+
+in 30 seconds we received 1 update
+for 10 million users there will be 10 million/30 = 334k updates in seconds
+
+High level design
+
+    receive location update from devices to server
+    find the near by friends and if they are within in the threshold send these updates to them.
+
+    but a single websocket server cannot store all the users, since web sockets are stateful
+    so we can use mulitple web sockets and web sockets can communicate using redis pub sub.
+
+    This is a cluster of stateful servers that handles the near real-time update of friends'
+    locations. Each client maintains one persistent WebSocket connection to one of these
+    servers. When there is a location update from a friend who is within the search radius,
+    the update is sent on this connection to the client.
+
+
+    Redis is used to store the most recent location data for each active user. There is a Time
+    to Live (TTL) set on each entry in the cache.
+
+
+Steps (workflow)
+    1. The mobile client sends a location update to the load balancer.
+    2. The load balancer forwards the location update to the persistent connection on the
+    WebSocket server for that client.
+    3. The WebSocket server saves the location data to the location history database.
+    4. The WebSocket server updates the new location in the location cache. The update
+    refreshes the TTL. The WebSocket server also saves the new location in a variable in
+    the user's WebSocket connection handler for subsequent distance calculations.
+    5. The WebSocket server publishes the new location to the user's channel in the Redis
+    Pub/Sub server. Steps 3 to 5 can be executed in parallel.
+    6. When Redis Pub/Sub receives a location update on a channel, it broadcasts the update
+    to all the subscribers (WebSocket connection handlers). In this case, the subscribers
+    are all the online friends of the user sending the update. For each subscriber (i.e., for
+    each of the user's friends), its WebSocket connection handler would receive the user
+    location update.
+    7. On receiving the message, the WebSocket server, on which the connection handler
+    lives, computes the distance between the user sending the new location (the location
+    data i s in the message) and the subscriber (the location data is stored in a variable
+    with the WebSocket connection handler for the subscriber).
+    8. This step is not drawn on the diagram. If the distance does not exceed the search
+    radius, the new location and the last updated timestamp are sent to the subscriber's
+    client. Otherwise, the update is dropped.
+
+
+APIS:
+    1. Connection Endpoints (Entry Points)
+    Protocol	Endpoint	Purpose
+    WSS	wss://api.example.com/v1/location	The main persistent connection for all real-time updates.
+    HTTPS	POST /v1/auth/token	Get a temporary token to authenticate the WebSocket connection.
+    2. Message "Endpoints" (Within the WebSocket)
+
+    Once connected to wss://api.example.com/v1/location, the server routes your data based on the message type. Think of these as Virtual Endpoints.
+    A. Periodic Location Update
+
+        Virtual Route: LOCATION_UPDATE
+
+        Direction: Client → Server
+
+        Payload: { "lat": float, "lng": float, "ts": long }
+
+    B. Initialization
+
+        Virtual Route: INIT_CONNECTION
+
+        Direction: Bi-directional (Client sends current pos, Server sends friend list)
+
+        Payload: { "initial_lat": float, "initial_lng": float }
+
+    C. Friend Subscription
+
+        Virtual Route: SUBSCRIBE_FRIEND / UNSUBSCRIBE_FRIEND
+
+        Direction: Client → Server
+
+        Payload: { "friend_id": "string" }
+
+    3. Complementary REST Endpoints
+
+    Even in a WebSocket-heavy app, you usually keep these standard REST endpoints for non-real-time actions:
+
+        GET /v1/friends: Returns a static list of all friends and their profiles (names, profile pictures).
+
+        GET /v1/users/:id/history: To fetch the path a friend took over the last 24 hours (not real-time).
+
+        POST /v1/friends/request: To send a new friend request.
+
+Location History Database
+    We need a database that handles the heavy-write workload well and can be horizontally
+    scaled. Cassandra is a good candidate.
+
+
+
+Scalability and design deep dive
+
+Redis scalability
+    With 10 million active users
+    at peak, and with each location taking no more than 100 bytes, a single modern Redis
+    server with many GBs of memory should be able to easily hold the location information
+    for all users. Thus, not much memory is required.
+
+    How to deal with high cpu
+    However, with 10 million active users roughly updating every 30 seconds, the Redis
+    server will have to handle 334K updates per second. That is likely a little too high, even
+    for a modern high-end server. Luckily, this cache data is easy to shard. The location data
+    for each user is independent, and we can evenly spread the load among several Redis
+    servers by sharding the location data based on user ID.
+
+
+Redis pub sub scalability
+    memory ----> Memory usage
+                 Assuming a channel is allocated for each user who uses the nearby friends feature, wa
+                 need 100 million channels (1 billion x 10%). Assuming that on average a user has 10)
+                 active friends using this feature (this includes friends who are nearby, or not), and it
+                 takes about 20 bytes of pointers in the internal hash table and linked list to track each
+                 subscriber, it will need about 200GB (100 million x 20 bytes x 100 friends/ 10% = 200GB)
+                 to hold all the channels. For a modern server with 100GB of memory, we will need about
+                 2 Redis Pub/Sub servers to hold all the channels.
+
+    cpu ------->  Let's
+                 pick a conservative number and assume that a modern server with a gigabit network
+                 could handle about 100,000 subscriber pushes per second. Given how small our location
+                 update messages are, this number is likely to be conservative. Using this conservative
+                 estimate, we will need to distribute the load among 14 million / 100,000 = 140 Redis
+                 servers.
+
+
+
+     Distributed redis pub sub cluster
