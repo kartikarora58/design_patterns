@@ -99,5 +99,10 @@ for eg array is 0 1 2 3 4
 
 
 for each index multiply it with i-1 and subtract the prefix sum of previous index
+--------------------------------------------------------
+lets suppose, we have two pointers and they are on their individual path, but later on path gets merged
+so they will meet at common point but if they have different distance from common point
+if one point gets exhausted restart it but with the different pointer and move till they meet
+
 
 
