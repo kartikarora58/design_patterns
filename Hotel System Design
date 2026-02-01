@@ -1,0 +1,107 @@
+Scale
+    5000 hotels and 1 million rooms
+    pay in full, when make reservations
+non functional requirements
+    support high concurrency -> no double booking
+    faster response time, but can be slow while making payments
+
+Back of the envelop estimation
+    70% of the rooms are occupied
+    daily reservations = 1 million x 0.7/3 = 233,333
+    reservations per second = 240000/10^5 = 3
+
+View hotel -> order booking page -> reserve rooms
+(300)             (30)                  3
+
+Api Design
+Hotel
+GET /v1/hotels/ID
+POST /v1/hotels
+PUT /v1/hotels/ID
+DELETE /v1/hotels/ID
+
+Room
+GET /v1/hotels/ID/rooms/ID
+POST /v1/hotels/ID/rooms
+PUT /v1/hotels/ID/rooms/ID
+DELETE /v1/hotels/ID/rooms/ID
+
+Reservation related APIs
+GET /v1/reservations
+GET /v1/reservations/ID
+POST /v1/reservations
+DELETE /v1/reservations/ID
+
+Components
+    User
+    Admin
+    CDN -> static data
+
+Services
+    Hotel Service
+    Rate Service
+    Reservation Service
+    Payment Service
+    Hotel Management Service
+
+Data Models
+    HotelService
+        Hotel
+            id
+            name
+            address
+            location
+
+        Room
+            id
+            roomTypeId
+            floor
+            hotel
+            isAvailable
+
+    Rate Service
+       RoomTypeRate
+            id
+            hotelId
+            roomTypeId
+            date
+            rate
+
+    ReservationService
+        RoomTypeInventory
+            hotelId
+            roomTypeId
+            date
+            totalInventory
+            totalReserved
+
+        Reservation
+            reservationId
+            hotelId
+            roomTypeId
+            startDate
+            endDate
+            userId
+
+SELECT date, total_inventory, total_reserved
+FROM room_type_inventory
+WHERE room_type_id = ${roomTypeId} AND hotel_id = ${
+h o t e l l d s
+AND date between ${startDate} and ${endDate}
+------------------------------------------------------
+shard database -> hash(hotel_id) % number_of_servers.
+
+concurrency issues
+1. same user clicks the book button multiple times
+    disable book button, but disabling javascript can bypass, solution add reservationId as the idempotent key
+
+2. multiple users try to book the same room at the same time
+    pessimistic locking -> select for update, deadlocks long running query
+    optimistic locking -> add versioning, but only one will succeed, retry and again one will succeed
+
+
+
+
+
+
+
