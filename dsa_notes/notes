@@ -122,6 +122,11 @@ During a Depth First Search, you record two values for every node:
 The Rule: Node A is an ancestor of Node B if and only if:
     tin[A] <= tin[B] AND tout[A] >= tout[B]
 This works because if A is an ancestor, the DFS must enter A before B, and it can only finish (exit) A after it has finished everything underneath it (including B).
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+if we want to find the sum of all the subarrays in the range [L,R]
+such that in all the subarrays index i is included
+(i−L+1)×(pp[R]−pp[i−1])−(R−i+1)×(pp[i−1]−pp[L−2])
+
 
 
 
