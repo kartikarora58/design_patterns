@@ -103,6 +103,25 @@ for each index multiply it with i-1 and subtract the prefix sum of previous inde
 lets suppose, we have two pointers and they are on their individual path, but later on path gets merged
 so they will meet at common point but if they have different distance from common point
 if one point gets exhausted restart it but with the different pointer and move till they meet
+------------------------------------------------------------
+in dp question of move down and right and find min cost, if they ad extra parameter such that it makes it a 3d dp
+such as teleportation ok k times, for this instead of making 3d metrices created 2d and iterate over it k number of times
+-------------------------------------------------------------------------------------------------------------------------
+In tree data structures, determining if Node A is an ancestor of Node B effectively means checking if Node B resides within the subtree rooted at Node A.
+Depending on whether you are dealing with a static tree or one you can preprocess, there are two primary ways to handle this.
+1. The Recursive Search (Standard Approach)
+If you haven't done any prior processing, you simply perform a traversal (like DFS) starting from the potential ancestor.
+    Logic: Start at Node A. Search all its children recursively. If you encounter Node B during the search, Node A is an ancestor.
+    Time Complexity: O(N) in the worst case, where N is the number of nodes in the subtree.
+2. The Entry/Exit Time Technique (Efficient/Optimal)
+If you need to perform multiple queries (e.g., in competitive programming or complex systems), you can use DFS Order Timestamps. This allows you to answer the "Is A an ancestor of B?" question in O(1) constant time after a single O(N) preprocessing step.
+How it works:
+During a Depth First Search, you record two values for every node:
+    Entry Time (tin): The time you first reach the node.
+    Exit Time (tout): The time you finish exploring the node and its entire subtree.
+The Rule: Node A is an ancestor of Node B if and only if:
+    tin[A] <= tin[B] AND tout[A] >= tout[B]
+This works because if A is an ancestor, the DFS must enter A before B, and it can only finish (exit) A after it has finished everything underneath it (including B).
 
 
 
