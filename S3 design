@@ -1,0 +1,128 @@
+3 types of storage
+Block Storage: Manages data as raw, hardware-level chunks for maximum speed and performance.
+Object Storage: Manages data as distinct units with metadata for infinite scalability in the cloud.
+File Storage: Manages data in a familiar hierarchy of files and folders for easy human access.
+
+Terminology
+Bucket: A container for objects in S3.
+Object: A unit of data stored in S3.
+Key: The unique identifier for an object.
+Version: A specific version of an object.
+Metadata: Additional information about an object.
+
+Functional Requirement
+Bucket creation.
+• Object uploading and downloading.
+• Object versioning.
+• Listing objects in a bucket. It's similar to the aws S3 ls command [8].
+
+store massive objects upto 100 petabytes of annual data
+Reduce cost while maintaining a high degree of reliability and performance
+
+100 PB storage suppose we used 40%
+• 20% of all objects are small objects (less than 1MB).
+• 60% of objects are medium-sized objects (1 MB ~ 64MB).
+• 20% are large objects (larger than 64MB).
+10^11 × 0.4/
+(0.2 × 0.5 MB +0.6 × 32 MB +0.2 × 200 MB) = 0.68 billion objects
+
+
+our system is write once and read many times
+
+How data is stored in unix like system
+File name and data is not stored together instead filename is stored in inode
+and data is stored in different disk locations.The inode contains a list of file block
+                                               pointers that point to the disk locations of the file data.
+object storage works similarly.
+
+HLD
+Load balancer
+API service
+DataStore -> all data related operations are on the basis of objectId
+Metadata store. Stores the metadata of the objects.
+
+Upload flow
+1. first bucket is created
+2. then object is uploaded to data store and it returns the uuid
+3. store object_name,object_id,bucket_id in table
+
+Download object
+GET /bucket-to-share/script.txt
+fetch uuid from metadata table
+the API service fetches the object data from the data store by its UUID.
+
+
+design deep dive
+    Data Store -> 3 components (data routing service,placement service, data node)
+        data routing service -> Query the placement service to get the best data node to store data.
+                                • Read data from data nodes and return it to the API service.
+                                • Write data to data nodes.
+                                generates uuid for the object
+        Placement service -> choose which data node will store object, data node sends hearbeat to placement service it is stateful
+
+        data node -> stores actual object (data node is replicated)
+
+
+how data is organized
+store in standlone files
+    issues -> files are stored in block size leads to wastage
+              and many files can lead to inode exhaustion
+
+    sol -> merge many small objects into a larger file, WAL file and LSM concept
+    for searching each data node can have below table, each data node can have
+    Object_mapping_table
+    objectId
+    fileName
+    startOffser
+    objectsize
+
+    for this table can use b+ tree postgres on each data node
+
+Durability
+    replication
+    erasure coding
+
+In erasure coding we break data into n number of chunks and create some almost n/2 parity chunks
+In a 3+2 setup, we have 3 data chunks (k) and 2 parity chunks (m).
+
+Chunk 1 (d1): 10
+
+Chunk 2 (d2): 20
+
+Chunk 3 (d3): 30
+
+Parity 1 (p1): 10+20+30=60
+
+Parity 2 (p2): (10×1)+(20×2)+(30×3)=140
+
+imagine 1 and 3 are lost
+From Parity 1: x+20+y=60 → x+y=40
+
+From Parity 2: (x×1)+(20×2)+(y×3)=140 → x+3y=100
+
+we can retrieve, in erasure coding less storage is required but cpu intensive
+
+
+Now coming back to metadata
+bucket(table)
+bucket_name
+bucket_id
+owner_id
+enable_versioning
+
+object(table)
+bucket_name
+object_name
+object _version
+Figure 9.21: Database tables
+
+
+To support versioning, the object table for the metadata store has a column called
+object_version that is only used if versioning is enabled. Instead of overwriting the
+existing record, a new record is inserted with the same bucket_id and object_name
+as the old record, but with a new object_id and object_version. The object_id is
+the UUID for the new object returned in step 3. The object_version is a TIMEUUID
+[29] generated when the new row is inserted. No matter which database we choose
+for the metadata store, it should be efficient to look up the current version of an
+object. The current version has the largest TIMEUUID of all the entries with the same
+object_name. See Figure 9.23 for an illustration of how we store versioned metadata.
