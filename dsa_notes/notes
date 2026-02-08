@@ -126,6 +126,29 @@ This works because if A is an ancestor, the DFS must enter A before B, and it ca
 if we want to find the sum of all the subarrays in the range [L,R]
 such that in all the subarrays index i is included
 (i−L+1)×(pp[R]−pp[i−1])−(R−i+1)×(pp[i−1]−pp[L−2])
+---------------------------------------------------------------------
+Euler graph
+    Euler Path
+    Euler Circuit
+Euler path -> if we can visited all edges in one go without traversing any edge again is known as euler path
+Euler Circuit -> while traversing if the start and end nodes are same, it is euler circuit and in this case degree of all the nodes is even
+Euler Graph -> eulerian circuit
+Semi Euler Graph -> eulerian path but not eulerian circuit
+non eulerian -> euler path doesn't exist
+
+Eulerian Path and circuit in directed graph
+For an Eulerian Circuit (starts and ends at the same node):
+
+    Every vertex must have an In-degree equal to its Out-degree.
+
+For an Eulerian Path (starts and ends at different nodes):
+
+    Exactly one vertex has Out-degree − In-degree = 1 (this is your Start node).
+
+    Exactly one vertex has In-degree − Out-degree = 1 (this is your End node).
+
+    All other vertices have an In-degree equal to their Out-degree.
+--------------------------------------------------------------------
 
 
 
