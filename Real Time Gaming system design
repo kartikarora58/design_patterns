@@ -1,0 +1,80 @@
+1. User gets a point, when they win a game.
+2. Each month new tournament kicks off.
+3. 5 million daily active users, 25 million monthly active users.
+4. Each player plays 10 games per day.
+5. If 2 players have same rank, the one with lesser timestamp will won.
+6. Leaderboard updates should be in real time.
+
+Functional Requirements
+• Display top 10 players on the leaderboard.
+• Show a user's specific rank.
+• Display players who are four places above and below the desired user (bonus).
+
+Back of the envelope estimation
+50 million daily active users = 50 million /10^5 qps, peak load will be 5 times = 250 usersps = 250 x 10 games per day = 2500 queries per second.
+
+API Design
+POST /v1/scores
+    userId
+    points
+
+GET /v1/scores -> returns top 10 players
+
+GET /v1/scores/{userId} -> return rank of specific user
+
+High Level Data flow
+1. Wins a game, request is validated by game service -> request is gone to leaderboard service -> leader service updates the points in leaderboard store
+client shouldn't talk to leaderboard service directly, This option is not secure because it is subject to man-in-the-middle attack.
+2. Use message queue between the game service and leaderboard service.
+
+For Data models we can use relational database and redis.
+RDS -> slow sorting is required.
+
+Redis Solution -> use sorted set
+sort on the basis of values (points) uses hashmap and skip list
+1. increment user -> ZINCRBY ‹key> ‹increment> ‹user>
+2. fetch top 10 users -> REVRANGE leaderboard_feb_2021 0 9 WITHSCORES
+3. fetch user rank -> ZREVRANK leaderboard_feb_2021 <user>
+4. TODO fetch relative user, by number of results below and above desired player.
+
+Storage requirement
+25 million monthly active users -> all have one won game, userId|rank
+userId -> 24 character 24 byte
+rank -> 16 bit integer (2 byte)
+total -> 26 byte leader board entry x 25 million users -> 650 MB (single redis instance is enough)
+2500 qps -> single CPU can handle this much performance
+
+Scaling Redis
+Lets imagine 500 million DAU
+for 5 million storage was 650 MB now it is 650 x 100 = 65 GB
+QPS = 2500 x 100 = 250000
+We need sharding
+
+Data Sharding
+Score range based Sharding -> partition on the basis of score, keep track of which shard the user
+when user score increases we have to move the user to new shard.
+
+(1-10) score shard -> (11-20) score shard ->... (91-100) shard
+
+Hash based partitioning -> Redis cluster automatically shards among multiple nodes, redis has 16384 hash slots
+minimum three nodes are required.
+• The first node contains hash slots [0, 5500].
+• The second node contains hash slots [5501, 11000].
+• The third node contains hash slots 11001, 16383).
+minimum three masters are required
+
+For top k results have to query all nodes and merge the results. slow, need to wait for slowest partition.
+
+Sizing a redis node
+redis does copy on write.
+have to store data on persistent storage so that after restart, data is not lost, for this redis stores data in persistent storage (Redis database snapshot)
+
+Redis updates data in ram
+spawns a child process which first create a copy of that page and stores in db, but this process is not frequent
+there is write in ram, but before child process is spawned redis crashes, so data loss
+
+Redis use AOF to add data, but AOF is also in memory,we can configure AOF to store in disk.
+then can only use AOF.
+AOF replay problem, have to replay it completely, but RDB has persisted data
+In short it uses both
+
