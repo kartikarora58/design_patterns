@@ -50,7 +50,7 @@ radius Optional. Default is 5000 meters (about 3 miles) int
 
 
 APIS for business
-ET /v1/businesses/:id Return detailed information about a business
+GET /v1/businesses/:id Return detailed information about a business
 POST /v1/businesses Add a business
 PUT /v1/businesses/:id Update details of a business
 DELETE /v1/businesses/:id Delete a business
