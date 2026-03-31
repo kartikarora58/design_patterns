@@ -26,6 +26,7 @@ Consumer
     name
     consumerTopic
 
+
 ConsumerTopic
     Topic
     offset
@@ -36,12 +37,12 @@ BrokerService
     Map<Integer,ConsumerController> topicToConsumer
 
 
-    int addPublisher(name,topicIds[])
+    int addPublisher(name)
     assignTopicToPublisher(publisherId,topicId)
     publishMessage(publisherId,content)
 
     int addTopic(name);
-    createConsumer(name,topicId)
+    createConsumer(name,topicId) ->
 
 
 ConsumerController

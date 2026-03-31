@@ -1,0 +1,85 @@
+Text messages only. Messages are generally measured in the range of
+kilobytes (KBs).
+Yes, messages can be repeatedly consumed by different consumers.
+it should support message ordering.
+It should be an event streaming platform, data should be store retention period should be 2 weeks.
+multiple producers and consumers
+support delivery semantics atmost once, atleast once and exactly once
+It should support both high throughput(log aggregation) and low latency
+
+Two models
+    point to point -> message is consumed by only one consumer
+    pub sub -> message is sent to topic and consumed by multiple consumers, who have subscribed to that topic
+Components
+    Topic -> consumer group subscribes multiple topics
+    partition -> increases parallelism for a topic,(use key parameter to supply message to same parition, resulting in message ordering)
+    brokers -> are used to hold parititions
+    offset -> posititon of the message in the queue, offset is also the pointer for each consumer.
+
+
+High Level Architecture
+    producer
+    consumer
+    broker
+    storage
+           data storage -> store messages
+           state storage -> consumer states (parition consumer mapping and offset)
+           meta data storage -> configuration and properties of topics (it was stored in zookeeper, like which parition is leader and broker health)
+
+     zookeeper contains meta data storage, state storage and coordination servic
+
+
+Design deep dive
+
+1. Data Storage
+    a->can use relational/nosql but, it should be both read and write heavy, which is not possible
+    b->WAL=> append data to it and assign the offset in sequential, if it reaches certain size dump and start new segment, delete new segment once they reach retention period
+            segments which belongs to same parition are stored in same folder
+
+Message Structure
+    Field Name Data Type
+    key byte|]
+    value byte|]
+    topic string
+    partition integer
+    offset long
+    timestamp long
+    size integer
+    crc integer
+
+Batching -> broker has to persist data to disk, TCP connection create -> low latency -> high cpu
+         -> producer accumulate message in buffer, then send to broker -> single connection -> multiple write->high trhoughput  but low latency -> less overhead and cpu
+
+
+Rouoting layer (read about leader from meta data storage) composed of producer+buffer(Batching buffers messages in memory and sends out larger batches in a single re-
+                                                                             quest. )
+
+Push vs pull message to consumer
+    push -> low latency, over whelmed consumer
+    poll -> suitable for batch processing, keep polling wastage or resource use long polling
+
+
+coordinator chooses consumer as leader, leader generates partition dispatch pland and sends it to te coordnaton
+
+
+
+In Sync replica
+data publisher side
+ACK = all (it means it is synced to all the replicas)
+ACK = 1 (it is synced only to leader)
+ACK = 0 (keep sending message without waiting for acknowledgment)
+
+If a broker fails, the partitions are moved to another broker, new broker is there to replicate data here replicas can increase
+once done extra partitions are removed from old brokers and new broker is part of cluster
+
+
+Adding a new partition doesn't involve data movement
+deleting partition doesn't delete immediately it keeps data till retention period, however no new data is pushed to this parition
+
+data delivery side
+At-most once = consumer commits the offset before processing and if consumer restarts there will be data loss
+At-least once = consumer process and commits but before commiting it fails it will receive the message again.
+
+Message filtering -> what if we want message filtering rather than creating separate topic add a tag and consumer subscribes topic along with tag so that it gets only those tagged messages.
+
+

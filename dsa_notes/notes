@@ -149,7 +149,14 @@ For an Eulerian Path (starts and ends at different nodes):
 
     All other vertices have an In-degree equal to their Out-degree.
 --------------------------------------------------------------------
-
-
-
+Summary Table
+SituationWhat to do
+Adding two values(a + b) % mod
+Multiplying two values(long) a * b % mod
+Subtracting two values((a - b) % mod + mod) % mod
+Comparing / max / minNever use mod, use long
+Large intermediate valuesCast to long before operation
+Final return(int)(result % mod)
+-------------------------------------
+if to use dijkstra and the edge weights are 0 and 1 then use dequeue put the 0 weight node to the first and 1 to the end
 

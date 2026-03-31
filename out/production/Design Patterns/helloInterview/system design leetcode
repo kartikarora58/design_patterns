@@ -1,0 +1,60 @@
+Functional Requirements
+1. view list of problems
+2. view a problem detail
+3. submit solution
+4. view leader board
+
+non functional Requirement
+1. highly availability, eventual consistency
+2. isolation while running code
+3. return submission result in 5 seconds
+4. competition with 100k users
+
+entities
+1. Problem-This entity will store the problem statement, test cases, and the expected output.
+2. Submission-This entity will store the user's code submission and the result of running the code against the test cases.
+3. Leaderboard-This entity will store the leaderboard for competitions.
+
+API
+GET /problems?page=1&limit=10 -> List<Problem>
+GET /problems/{id}?language={language} -> Problem with code stub in that specific language
+POST /problems/{id}/submit -> Submission
+{
+   code:string,
+   language:string
+}
+GET /leaderboard/:competitionId?page=1&limit=100 -> Leaderboard
+
+TODO create a submission table
+
+Problem
+{
+  id: string,
+  title: string,
+  question: string,
+  level: string,
+  tags: string[],
+  codeStubs: {
+    python: string,
+    javascript: string,
+    typescript: string,
+    ...
+  },
+  testCases: {
+    type: string,
+    input: JSON,
+    output: JSON
+  }[]
+}
+
+Code Submit
+Run in an isolated environment, serverless
+
+Leaderboard
+Use redis to maintain a leaderboard whenever a submission is there, update the leaderboard in redis and UI can periodically poll it.
+
+Scale system to support competition with 100k users
+when user submits the code, we can push it into the sqs queue and consumer will run the code and write the submission data to submission table.
+here when we click on submit we will not get the response instantly in we have to provide the check status api to check the status of the submission
+
+

@@ -1,0 +1,80 @@
+1. 1 billion users use the product.
+2. functionalities = authentication,send and receive emails,fetch emails, filter by read and unread status, search email by subject, sender and body
+anti spam and anti virus
+
+Back of the envelop estimation
+1 billion users
+number of emails person send per day is 10 QPS = 100K
+1 billion users x 40 emails/day × 365 days x 50 KB = 730 PB. 50KB is the metadata
+emails including attachment-1 billion users x 40 emails/day x 365 days x
+20% × 500 KB = 1,460 PB
+
+Email Protocols
+    SMTP -> for sending mails from one mail server to another mail server
+    POP/IMAP -> downloading mail from mail server to client machine
+        POP -> mails are downloaded to client and deleted from the mail server, takes time if include attachments
+        IMAP -> only email header information is downloaded, when you click then email is downloaded but not deleted from server
+
+web mail
+1. Endpoint: POST /v1/messages -> send a message
+2. Endpoint: GET /v1/folders -> Returns all folders of an email account.
+3. Endpoint: GET /v1/folders/{:folder_id}/messages -> Returns all messages under a folder.
+4. Endpoint: GET /v1/messages/{:message_id} -> Gets all information about a specific message.
+
+Distributed mail service architecture
+web-servers ->  In our design, all email API requests, such
+               as sending an email, loading mail folders, loading all mails in a folder, etc.,
+web-socket -> pushing realtime update to the user
+Metadata database -> This database stores mail metadata including mail subject, body,
+232 | Chapter 8. Distributed Email Service
+from user, to users, etc.
+Attachment Store -> s3 for storing the attachments
+Distributed Cache -> redis to store frequently accessed email
+Search Store -> elasticsearch to for searching and filtering
+
+Design Deep Dive
+Metadata storage -> can use postgres but optimised for small chunks of data enteries, according to requirement it should be write heavy, highly available we can use SST cassandra
+Data model
+Query 1 -> get all folders for a user
+            folders_by_user (table)
+            user_id UUID K
+            folder_id UUID
+            folder_name TEXT
+Query 2: display all emails for a specific folder.
+            partition key ‹user_id, folder_id›
+            emails_by_folder
+            user_id UUID
+            folder_id UUID
+            email_id TIMEUUID CI
+            from TEXT
+            subject TEXT
+            preview TEXT
+            is_read BOOLEAN
+Query 4: fetch all read or unread emails
+To mark an UNREAD email as READ, the email is deleted from unread_emails and then in-
+sorted to read_emails.
+            read_emails
+            user_id UUID K
+            folder_id UUID K
+            email _id TIMEUUID C
+            from TEXT
+            subject TEXT
+            preview TEXT
+
+
+use elasticsearch for searching
+        {
+          "user_id": "user_8829",
+          "email_id": "eml_550e8400",
+          "subject": "Project Update: Q1 Roadmap",
+          "body": "Hi team, attached is the high-level design for the new email search feature...",
+          "sender": "colleague@company.com",
+          "recipients": ["me@company.com"],
+          "timestamp": "2026-02-01T10:30:00Z",
+          "has_attachments": true,
+          "folder": "inbox"
+        }
+
+
+
+
