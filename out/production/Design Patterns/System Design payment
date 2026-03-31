@@ -1,0 +1,99 @@
+Payment System Design (Merchant side)
+    payment backend for ecommerce applications
+    use third party payment processor such as stripe, paypal, etc
+    don't store card, use third party page and directly enter card data
+    1 million transactions
+    support payout flow, money is transferred to amazon first and then amazon transfers it to merchants
+    reconciliation is required (ledger)
+Functional requirements
+• Pay-in flow: payment system receives money from customers on behalf of sellers.
+• Pay-out flow: payment system sends money to sellers around the world.
+
+reconciliation between your system and stripe payments across system is consistent
+
+user click on checkout
+payment event goes to payment service, it store payment event in the db (checkoutId works as idempotency key)
+and sends the payment event to payment executor (another internal service) store payment order in the db and send to PSP (stripe)
+then it updates the wallet, that how much money a seller has. and also updates the ledger
+
+API for payment service
+    POST /v1/payments
+    payload
+        buyer_info
+        checkout_id
+        payment_orders
+
+        payment order
+            seller_account
+            amount
+            currency
+            payment_order_id
+    when payment executor sends a payment request to third party PSP payment_order_id is used as idempotency key
+
+    if a checkout contains multiple sellers multiple payment orders will be created, instead we can use checkout id as the idempotency key
+    and charge customer only once at a time, later on use payment orders to update the wallet and ledger
+
+    GET /v1/payments/{:id}
+        This endpoint returns the execution status of a single payment order based on
+        payment_order_id (we are using checkoutId)
+
+
+    Payment Event
+        checkout_id  string PK
+        buyer_info
+        isPaymentDone
+
+    Payment order
+        payment_order_id
+        amount
+        currency
+        checkoutId
+        payment_order_status
+        ledger_updated
+        wallet_updated
+
+    status -> executing, success, failed
+
+    Account Debit Credit
+    buyer    $1
+    seller        $1
+
+    Hosted Payment page
+
+Design deep dive
+     PSP integration
+     Reconciliation
+     Handling payment processing delays
+     Communication among internal services
+     Handling failed payments
+     Exact-once delivery
+     Consistency
+     Security
+
+    The user clicks the "checkout" button in the client browser. The client calls the payment service with the payment order information.
+    payment service calls the payment executor and payment executor calls the external PSP.
+    it return UUID nonce (after creating payment intent on stripe), payment service stores the token before calling the PSP-hosted payment page on ui.
+
+    Every night banks send settlement file to their clients. Reconciliation parses the file and compares the details with the ledger system.
+
+    PSP would return a pending status to client browser if it takes a long time to process the payment.
+
+
+Idempotency
+    1. pay button clicked twice -> nonce payment token (UUID) to prevent duplicate request
+    2. payment succeeded but the response didn't reach, the user clicks the payment again nonce check and will return the payment status.
+
+
+1. The payment service keeps payment-related data such as nonce, token, payment or-der, execution status, etc.
+2. The ledger keeps all accounting data.
+3. The wallet keeps the account balance of the merchant.
+4. The PSP keeps the payment execution status.
+5. Data might be replicated among different database replicas to increase reliability.
+
+
+
+
+
+
+
+

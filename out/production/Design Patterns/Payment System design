@@ -1,0 +1,38 @@
+The flow in Figure 11.4 describes a Hosted Payment Page (HPP) model. In this setup, the Merchant (your website) never handles sensitive credit card data directly. Instead, the user is redirected to a page hosted by the Payment Service Provider (PSP) (like Stripe, PayPal, or Adyen).
+
+Here is a detailed breakdown of the steps shown in the diagram:
+1. Initiating the Checkout
+
+The process begins when the user decides to buy something on the Client Browser.
+
+    Step 1: Start Payment. The user clicks "Checkout" on the Merchant's website. The browser sends a request to the Merchant’s Payment System (the backend) to initiate the transaction.
+
+    Step 2: Create Payment. The Merchant’s backend contacts the PSP via an API. It sends details like the amount, currency, and a "nonce" (a unique string to prevent duplicate transactions).
+
+    Step 3: Return Payment Token. The PSP validates the request and sends back a unique Payment Token. This token represents the specific transaction session without containing any sensitive data yet.
+
+2. The Redirection to PSP
+
+Now, the Merchant needs to move the user to a secure environment.
+
+    Step 4: Store Token & Redirect. The Merchant’s backend stores the token in its database (to track the order status) and sends it back to the Client Browser.
+
+    Step 5: Display PSP Page. The browser uses that token to redirect the user to the PSP's Hosted Payment Page.
+
+        Why do this? This keeps the Merchant "out of PCI scope." Because the user types their card number directly into the PSP's site, the Merchant's servers never see the card data, significantly reducing security risks and compliance costs.
+
+3. Processing the Payment
+
+The user interacts solely with the PSP at this stage.
+
+    Step 6: User Enters Data. The user provides their payment details (Credit Card, Digital Wallet, etc.) on the PSP's secure page and clicks "Pay."
+
+    Step 7: Payment Result. The PSP processes the transaction with the banks. Once finished, the PSP shows a temporary "Success" or "Failure" message to the user on that hosted page.
+
+4. Finalizing and Syncing
+
+The Merchant needs to know the payment was successful to fulfill the order.
+
+    Step 8: Webhook (The "Behind-the-Scenes" Sync). The PSP sends an asynchronous Webhook (a server-to-server notification) to the Merchant’s Payment System. This is the "source of truth" that confirms the money has been captured.
+
+    Step 9: Redirect to Completion Page. Finally, the PSP redirects the Client Browser back to the Merchant’s "Thank You" or "Order Confirmed" page.

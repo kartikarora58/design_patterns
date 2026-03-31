@@ -1,0 +1,68 @@
+Elevator Car
+
+1. Building
+2. Floor
+3. ExternalButton -> UP/DOWN
+4. Elevator Car
+5. Display
+6. InternalButtons -> (1-9) go to which floor
+
+
+------
+when outside buttong is pressed (external button) -> which elevator will serve the request (Different Ways to assign request to elevator)
+How elevator will serve the request -> different ways an elevator will serve the request -> either it can go till end in one direction and
+
+-------
+elevator is a dumb object for each elevator we need a controller to move the elevator
+
+
+Elevator
+    id
+    Direction
+    floor
+    InternalButton
+    --------------
+    void move(int floor,Direction direction)
+    pressButton(int floor)
+
+
+InternalButton
+    elevatorController
+    ----------------------
+    dispatchRequest(int floor)
+
+
+ElevatorController
+    elevator
+    PriorityQueue<Integer> minQ
+    PriorityQueue<integer> maxQ
+   -----------------------------
+   startElevator()
+   submitRequest(int floorId)
+
+
+Building
+    List<Floor>
+
+
+Floor
+    id
+    ExternalButton
+    ---------------
+    pressButton(direction)
+
+ExternalButton
+    ElevatorAssignerStrategy
+    -------------------------
+    assignRequest(int floor,Direction direction)
+
+
+NearestElevatorStrategy
+    List<ElevatorController> elevatorController
+    --------------------------------
+    getElevator(int floor,Direction direction)
+
+
+
+
+

@@ -1,7 +1,13 @@
 package lld.kafka_multi.model;
 
 public class ConsumerTopic {
-    Topic topic;
-    int offset;
+    public Topic topic;
+    public int offset;
+
+    public ConsumerTopic(Topic topic)
+    {
+        this.topic = topic;
+        this.offset = 0;
+    }
 
 }
