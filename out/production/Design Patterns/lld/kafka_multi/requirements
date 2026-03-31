@@ -1,0 +1,57 @@
+Publisher can publish message to multiple topics
+consumer can consume messages from topics
+single topic can be consumed by multiple consumers
+
+user can create a publisher and assign topics to it
+publisher can push messages to topics
+and as soon as the message is pushed to a topic it will notify consumers to start consuming
+consumers will run in a separate thread and if the topic is empty then the consumers
+
+Publisher
+    id
+    name
+    List<Topic>
+
+Topic
+    id
+    name
+    List<Message>
+
+Message
+    id
+    content
+
+Consumer
+    id
+    name
+    consumerTopic
+
+
+ConsumerTopic
+    Topic
+    offset
+
+BrokerService
+    Map<Integer,Publisher> publishers
+    Map<Integer,Topic> topics
+    Map<Integer,ConsumerController> topicToConsumer
+
+
+    int addPublisher(name)
+    assignTopicToPublisher(publisherId,topicId)
+    publishMessage(publisherId,content)
+
+    int addTopic(name);
+    createConsumer(name,topicId) ->
+
+
+ConsumerController
+    Consumer
+    startConsumer()
+    processMessage(Message)
+
+
+
+
+
+

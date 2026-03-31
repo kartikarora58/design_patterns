@@ -1,0 +1,50 @@
+Functional Requirements
+1. Users should be able to view events.
+2. Search for events.
+3. Book Tickets for the events
+
+Non Functional Requirements
+1. Prioritize availability for searching and viewing but should be consistent for booking events.
+2. Scalable should be able to handle 10 million users per event.
+3. low latency search.
+4. read heavy
+
+Entities
+1.Event
+2.User
+3.Venue
+4.Ticket
+5.Booking
+
+Ticket
+    event
+    seat
+    price
+    status
+
+APIS
+GET /events/{eventId} -> Event and the seat map
+GET /events/search/?city={city}&?eventName={ironMan}&?date={date}
+POST /bookings/{eventId}
+Body {
+    "ticketId": string[]
+    "paymentDetails":
+}
+
+How to prevent double booking ?
+1. select for update -> It will keep the transaction open till the payment is done, other queries will timeout and it will lead to thread pool exhaustion.
+2. add column in postgres -> with status and expiration timestamp, but will need to cron periodically set the status available once the timestamp is expire, but there can be latency between the cron run and expiration and it is creating a dependency
+3. Distributed lock with redis TTL
+
+Sometime seat map can get stale, so we can sent server sent event to update seat map on UI
+However, If there is a popular event where millions of users simultaneous seat map updates
+
+We can introduce a concept of waiting queue
+For specific event seat booking, we can redirect and add user to a virtual queue which is sorted by timestamp in redis and
+will show the user the rank, will pull the n number of users and add them to admitted queue(timestamp) in redis, each user will have
+only 10 mins to do the booking.
+admitted queue is a safe check, so that for every request if it is allowed, then only proceed.
+
+
+for searching we can use elasticsearch
+
